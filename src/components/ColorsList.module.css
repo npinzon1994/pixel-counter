@@ -1,0 +1,18 @@
+.list {
+    background: #e8e8e8;
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 2em;
+    border-bottom: #888888 1px solid;
+}
+
+.color-swatch {
+    height: 100%;
+    width: 2em;
+}
