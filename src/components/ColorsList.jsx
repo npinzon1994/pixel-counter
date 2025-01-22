@@ -1,11 +1,24 @@
 import ColorsContext from "../context/colors-context";
 import classes from "./ColorsList.module.css";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 
 const TRANSPARENT = "R0G0B0A0";
 
 const ColorsList = () => {
   const { colors } = useContext(ColorsContext);
+  const [scrapedColors, setScrapedColors] = useState({});
+
+  //scraping colors on first load
+  useEffect(() => {
+    fetch("http://localhost:5000/api/colors")
+      .then((response) => response.json())
+      .then((data) => setScrapedColors(data))
+      .catch((error) => console.error("Error fetching colors:", error));
+  }, []);
+
+  useEffect(() => {
+    console.log(scrapedColors);
+  }, [scrapedColors]);
 
   //filtering out transparent pixels
   const filteredColors = Object.entries(colors).filter(
@@ -29,19 +42,53 @@ const ColorsList = () => {
     };
   });
 
+  /**
+   * Loop through all colors in masterColorsList.
+   * For each color, compare it against every color in
+   * the lookup table until we get a match.
+   * Then add the name to that object in the masterColorsList
+   * as a new property.
+   */
+
+  const ultimateList = [];
+  for (let i = 0; i < masterColorsList.length; i++) {
+    if (masterColorsList[i].colorKey in scrapedColors) {
+      //if color exists in lookup table
+      ultimateList.push({
+        name: scrapedColors[masterColorsList[i].colorKey],
+        colorKey: masterColorsList[i].colorKey,
+        quantity: masterColorsList[i].quantity,
+        r: masterColorsList[i].r,
+        g: masterColorsList[i].g,
+        b: masterColorsList[i].b,
+      });
+    } else {
+      ultimateList.push({
+        colorKey: masterColorsList[i].colorKey,
+        quantity: masterColorsList[i].quantity,
+        r: masterColorsList[i].r,
+        g: masterColorsList[i].g,
+        b: masterColorsList[i].b,
+      });
+    }
+  }
+
   return (
-    <ul className={classes.list}>
-      {masterColorsList.map((color) => (
-        <li key={color.colorKey}>
-          <div
-            className={classes["color-swatch"]}
-            style={{ background: `rgb(${color.r}, ${color.g}, ${color.b})` }}
-          ></div>
-          <span>{color.colorKey}</span>
-          <span>{color.quantity}</span>
-        </li>
-      ))}
-    </ul>
+    <>
+      <p>PARAGRAPH</p>
+      <ul className={classes.list}>
+        {masterColorsList.map((color) => (
+          <li key={color.colorKey}>
+            <div
+              className={classes["color-swatch"]}
+              style={{ background: `rgb(${color.r}, ${color.g}, ${color.b})` }}
+            ></div>
+            <span>{color.colorKey}</span>
+            <span>{color.quantity}</span>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 };
 
