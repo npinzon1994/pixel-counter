@@ -6,8 +6,11 @@ const ImageUploader = () => {
   const [uploadedImage, setUploadedImage] = useState("");
 
   function uploadImage(event) {
-    const imagePath = URL.createObjectURL(event.target.files[0]);
-    setUploadedImage(imagePath);
+    const file = event.target.files[0];
+    
+      setUploadedImage(file);
+      console.log(file);
+    
   }
 
   return (
@@ -24,12 +27,12 @@ const ImageUploader = () => {
       </form>
       {uploadedImage ? (
         <div className={classes["img-container"]}>
-          <img src={uploadedImage} style={{display: "none"}} />
+          <img src={uploadedImage} style={{ display: "none" }} />
         </div>
       ) : (
         <p>NO IMAGE SELECTED</p>
       )}
-      <PixelMapper src={uploadedImage}/>
+      <PixelMapper file={uploadedImage} />
     </>
   );
 };

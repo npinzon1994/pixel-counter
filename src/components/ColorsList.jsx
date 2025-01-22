@@ -74,21 +74,18 @@ const ColorsList = () => {
   }
 
   return (
-    <>
-      <p>PARAGRAPH</p>
-      <ul className={classes.list}>
-        {masterColorsList.map((color) => (
-          <li key={color.colorKey}>
-            <div
-              className={classes["color-swatch"]}
-              style={{ background: `rgb(${color.r}, ${color.g}, ${color.b})` }}
-            ></div>
-            <span>{color.colorKey}</span>
-            <span>{color.quantity}</span>
-          </li>
-        ))}
-      </ul>
-    </>
+    <ul className={classes.list}>
+      {masterColorsList.map((color) => (
+        <li key={color.colorKey}>
+          <div
+            className={classes["color-swatch"]}
+            style={{ background: `rgb(${color.r}, ${color.g}, ${color.b})` }}
+          ></div>
+          <span>{color.colorKey}</span>
+          <span>{color.quantity}</span>
+        </li>
+      ))}
+    </ul>
   );
 };
 
