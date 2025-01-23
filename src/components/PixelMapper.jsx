@@ -15,6 +15,7 @@ function PixelMapper({ file }) {
         const b = pixels[i + 2];
         const a = pixels[i + 3];
         const colorKey = `R${r}G${g}B${b}A${a}`;
+        // console.log("COLOR KEY: ", colorKey);
         addPixel(colorKey);
       }
     }
