@@ -1,7 +1,14 @@
+.list-container {
+    display: flex;
+    gap: 1rem;
+    
+}
+
 .list {
     background: #e8e8e8;
     list-style-type: none;
     padding-left: 0;
+    flex: 1;
 }
 
 .list li {

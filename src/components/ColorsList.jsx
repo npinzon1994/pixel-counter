@@ -1,4 +1,5 @@
 import ColorsContext from "../context/colors-context";
+import KDTree from "../model/kd-tree";
 import classes from "./ColorsList.module.css";
 import { useContext, useEffect, useState } from "react";
 
@@ -41,7 +42,9 @@ function convertRGBtoXYZ(rgbMatrix) {
     innerArray.map((value) => value / 255)
   );
   const linearizedValues = normalizedValues.map((innerArray) =>
-    innerArray.map((value) => value ** (1 / 2.2))
+    innerArray.map((value) =>
+      value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4)
+    )
   );
 
   // Get dimensions of the matrices
@@ -76,7 +79,7 @@ function convertRGBtoXYZ(rgbMatrix) {
 
 function convertXYZtoCIELAB(
   xyzPixel,
-  whitePoint = { X: 95.047, Y: 100.0, Z: 108.883 }
+  whitePoint = { X: 95.0489, Y: 100.0, Z: 108.8840 }
 ) {
   const { x, y, z } = xyzPixel;
 
@@ -108,11 +111,68 @@ function convertXYZtoCIELAB(
   return { L, a, b };
 }
 
-function calculateColorDifference(pixel1, pixel2) {
-  const deltaL = (pixel2.L - pixel1.L) ** 2;
-  const deltaA = (pixel2.a - pixel1.a) ** 2;
-  const deltaB = (pixel2.b - pixel1.b) ** 2;
-  return Math.sqrt(deltaL + deltaA + deltaB);
+function convertCIELABtoXYZ(
+  labPixel,
+  whitePoint = { X: 95.047, Y: 100.0, Z: 108.883 }
+) {
+  const L = labPixel[0];
+  const a = labPixel[1];
+  const b = labPixel[2];
+
+  const { X: Xn, Y: Yn, Z: Zn } = whitePoint;
+
+  // Reverse f(t) transformation
+  const delta = 6 / 29;
+  const fInverse = (t) => (t > delta ? t ** 3 : 3 * delta ** 2 * (t - 4 / 29));
+
+  // Calculate fX, fY, and fZ
+  const fY = (L + 16) / 116;
+  const fX = fY + a / 500;
+  const fZ = fY - b / 200;
+
+  // Apply fInverse to get normalized Xr, Yr, Zr
+  const Xr = fInverse(fX);
+  const Yr = fInverse(fY);
+  const Zr = fInverse(fZ);
+
+  // Denormalize by multiplying with the reference white point
+  const x = Xr * Xn;
+  const y = Yr * Yn;
+  const z = Zr * Zn;
+
+  return { x, y, z };
+}
+
+function convertXYZtoRGB(xyzPixel) {
+  const { x, y, z } = xyzPixel;
+
+  // Transformation matrix for converting XYZ to linear RGB (sRGB D65)
+  const M = [
+    [3.2406, -1.5372, -0.4986],
+    [-0.9689, 1.8758, 0.0415],
+    [0.0557, -0.204, 1.057],
+  ];
+
+  // Convert XYZ to linear RGB
+  const rLinear = M[0][0] * x + M[0][1] * y + M[0][2] * z;
+  const gLinear = M[1][0] * x + M[1][1] * y + M[1][2] * z;
+  const bLinear = M[2][0] * x + M[2][1] * y + M[2][2] * z;
+
+  // Gamma correction function for sRGB
+  const gammaCorrect = (c) =>
+    c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
+
+  // Apply gamma correction and clamp values to the [0, 1] range
+  const r = Math.min(Math.max(gammaCorrect(rLinear), 0), 1);
+  const g = Math.min(Math.max(gammaCorrect(gLinear), 0), 1);
+  const b = Math.min(Math.max(gammaCorrect(bLinear), 0), 1);
+
+  // Scale to 8-bit RGB range [0, 255]
+  return {
+    r: Math.round(r * 255),
+    g: Math.round(g * 255),
+    b: Math.round(b * 255),
+  };
 }
 
 const ColorsList = () => {
@@ -127,15 +187,16 @@ const ColorsList = () => {
       .catch((error) => console.error("Error fetching colors:", error));
   }, []);
 
-  // useEffect(() => {
-  //   console.log("Scraped Colors: ", scrapedColors);
-  // }, [scrapedColors]);
+  useEffect(() => {
+    console.log("Scraped Colors: ", scrapedColors);
+  }, [scrapedColors]);
 
   //convert to array and filter out transparent pixels
   const rgbArray_fromImg = Object.entries(colors).filter(
     (color) => parseInt(color[0].split("A")[1]) !== 0
   );
 
+  //prepping for matrix transformations
   const rgbMatrix_fromImg = convertToMatrix(rgbArray_fromImg);
   console.log("RGB Matrix from IMAGE:", rgbMatrix_fromImg);
 
@@ -148,7 +209,7 @@ const ColorsList = () => {
   const xyzMatrix_lookupTable = convertRGBtoXYZ(rgbMatrix_lookupTable);
   console.log("XYZ Matrix from LOOKUP TABLE: ", xyzMatrix_lookupTable);
 
-  //need to get xyz values into object form for lab conversion
+  //converting back to n*3 matrix for color comparison
   const labValues_fromImg = [];
   for (let i = 0; i < xyzMatrix_fromImg[0].length; i++) {
     const pixel = [];
@@ -160,13 +221,12 @@ const ColorsList = () => {
       y: pixel[1],
       z: pixel[2],
     };
-
-    const labPixel = convertXYZtoCIELAB(xyzPixel);
+    const labPixel = Object.values(convertXYZtoCIELAB(xyzPixel));
     labValues_fromImg.push(labPixel);
   }
-
   console.log("Lab values from IMAGE: ", labValues_fromImg);
 
+  //converting back to n*3 matrix for color comparison
   const labValues_lookupTable = [];
   for (let i = 0; i < xyzMatrix_lookupTable[0].length; i++) {
     const pixel = [];
@@ -178,12 +238,21 @@ const ColorsList = () => {
       y: pixel[1],
       z: pixel[2],
     };
-
-    const labPixel = convertXYZtoCIELAB(xyzPixel);
+    const labPixel = Object.values(convertXYZtoCIELAB(xyzPixel));
     labValues_lookupTable.push(labPixel);
   }
-
   console.log("Lab values from LOOKUP TABLE: ", labValues_lookupTable);
+
+  const colorLookupTree = new KDTree(labValues_lookupTable, 3);
+  const colorPalette = labValues_fromImg.map((value) => {
+    console.log("Lab Pixel OG", value);
+    const labPixel = colorLookupTree.findNearestNeighbor(value).point;
+    console.log("Lab pixel Nearest Neighbor: ", labPixel);
+    const xyzPixel = convertCIELABtoXYZ(labPixel);
+    console.log("XYZ pixel: ", xyzPixel);
+    return convertXYZtoRGB(xyzPixel);
+  });
+  console.log("Color Palette: ", colorPalette);
 
   //colors being output to screen
   const colorsArray = Object.entries(colors).map((color) => {
@@ -198,28 +267,33 @@ const ColorsList = () => {
   //filtering out transparent pixels
   const filteredColors = colorsArray.filter((color) => color.a !== 0);
 
-  //looping through colors (from img) and comparing against lookup table
-  for (let i = 0; i < filteredColors.length; i++) {
-    //if the EXACT color exists in table
-    if (filteredColors[i].colorKey in scrapedColors) {
-      filteredColors[i].name = scrapedColors[filteredColors[i].colorKey];
-    }
-    //now need to find the closest possible color from lookup table
-  }
-
   return (
-    <ul className={classes.list}>
-      {filteredColors.map((color) => (
-        <li key={color.colorKey}>
-          <div
-            className={classes["color-swatch"]}
-            style={{ background: `rgb(${color.r}, ${color.g}, ${color.b})` }}
-          />
-          <span>{color.name ? color.name : color.colorKey}</span>
-          <span>{color.quantity}</span>
-        </li>
-      ))}
-    </ul>
+    <div className={classes["list-container"]}>
+      <ul className={classes.list}>
+        {filteredColors.map((color) => (
+          <li key={color.colorKey}>
+            <div
+              className={classes["color-swatch"]}
+              style={{ background: `rgb(${color.r}, ${color.g}, ${color.b})` }}
+            />
+            <span>{color.name ? color.name : color.colorKey}</span>
+            <span>{color.quantity}</span>
+          </li>
+        ))}
+      </ul>
+      <ul className={classes.list}>
+        {colorPalette.map((color) => (
+          <li key={`${color.r}${color.g}${color.b}`}>
+            <div
+              className={classes["color-swatch"]}
+              style={{ background: `rgb(${color.r}, ${color.g}, ${color.b})` }}
+            />
+            <span>{`R${color.r}G${color.g}B${color.b}`}</span>
+            <span>{color.quantity}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 };
 
