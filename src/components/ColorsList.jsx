@@ -9,6 +9,8 @@ const CONVERSION_MATRIX = [
   [0.0193339, 0.119192, 0.9503041],
 ];
 
+const formatWithComma = (number) => Intl.NumberFormat().format(number);
+
 function extractDigits(string) {
   const extractedValues = string.match(/\d+/g).map(Number);
   return {
@@ -79,7 +81,7 @@ function convertRGBtoXYZ(rgbMatrix) {
 
 function convertXYZtoCIELAB(
   xyzPixel,
-  whitePoint = { X: 95.0489, Y: 100.0, Z: 108.8840 }
+  whitePoint = { X: 95.0489, Y: 100.0, Z: 108.884 }
 ) {
   const { x, y, z } = xyzPixel;
 
@@ -243,57 +245,45 @@ const ColorsList = () => {
   }
   console.log("Lab values from LOOKUP TABLE: ", labValues_lookupTable);
 
-  const colorLookupTree = new KDTree(labValues_lookupTable, 3);
-  const colorPalette = labValues_fromImg.map((value) => {
-    console.log("Lab Pixel OG", value);
+  const colorLookupTree = new KDTree(labValues_lookupTable);
+
+  const rgbPixels = labValues_fromImg.map((value) => {
     const labPixel = colorLookupTree.findNearestNeighbor(value).point;
-    console.log("Lab pixel Nearest Neighbor: ", labPixel);
     const xyzPixel = convertCIELABtoXYZ(labPixel);
-    console.log("XYZ pixel: ", xyzPixel);
     return convertXYZtoRGB(xyzPixel);
   });
-  console.log("Color Palette: ", colorPalette);
 
-  //colors being output to screen
-  const colorsArray = Object.entries(colors).map((color) => {
-    const truncatedKey = color[0].split("A")[0]; //removing the Alpha value
-    return {
-      colorKey: truncatedKey,
-      quantity: color[1],
-      ...extractDigits(color[0]),
-    };
-  });
-
-  //filtering out transparent pixels
-  const filteredColors = colorsArray.filter((color) => color.a !== 0);
+  const colorQuantities = Object.entries(colors).map((color) => color[1]);
+  const colorPalette = [];
+  let totalPixels = 0;
+  for (let i = 0; i < rgbPixels.length; i++) {
+    const color = { ...rgbPixels[i] };
+    const { r, g, b } = color;
+    const colorKey = `R${r}G${g}B${b}`;
+    const name = colorKey in scrapedColors ? scrapedColors[colorKey] : colorKey;
+    color.colorKey = colorKey;
+    color.name = name;
+    color.quantity = colorQuantities[i];
+    totalPixels += color?.quantity;
+    colorPalette.push(color);
+  }
 
   return (
-    <div className={classes["list-container"]}>
+    <>
+      <p>TOTAL BEAD COUNT -- {formatWithComma(totalPixels)}</p>
       <ul className={classes.list}>
-        {filteredColors.map((color) => (
+        {colorPalette.map((color) => (
           <li key={color.colorKey}>
             <div
               className={classes["color-swatch"]}
               style={{ background: `rgb(${color.r}, ${color.g}, ${color.b})` }}
             />
-            <span>{color.name ? color.name : color.colorKey}</span>
-            <span>{color.quantity}</span>
+            <span>{color.name}</span>
+            <span>{formatWithComma(color.quantity)}</span>
           </li>
         ))}
       </ul>
-      <ul className={classes.list}>
-        {colorPalette.map((color) => (
-          <li key={`${color.r}${color.g}${color.b}`}>
-            <div
-              className={classes["color-swatch"]}
-              style={{ background: `rgb(${color.r}, ${color.g}, ${color.b})` }}
-            />
-            <span>{`R${color.r}G${color.g}B${color.b}`}</span>
-            <span>{color.quantity}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
+    </>
   );
 };
 

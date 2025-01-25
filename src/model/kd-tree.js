@@ -2,8 +2,8 @@ class KDTree {
   //points -- coordinate points -- each point is a pixel
   //depth -- current level in the tree
   //k -- number of dimensions
-  constructor(points = [], level = 0, k) {;
-    this.axis = level % k; //R=0, G=1, B=2
+  constructor(points = [], level = 0) {;
+    this.axis = level % 3; //R=0, G=1, B=2
 
     //base case -- exit algorithm when there are no more points to process
     if (points.length === 0) {
@@ -36,6 +36,7 @@ class KDTree {
     bestMatch = { point: null, distance: Infinity }
   ) {
     if (!this.point) {
+      console.log("FINAL Best Match: ", bestMatch.point)
       return bestMatch;
     }
     const axis = level % 3;
@@ -43,6 +44,7 @@ class KDTree {
 
     //update best match if current point is closer
     if (distance < bestMatch.distance) {
+      console.log("NEW Best Match: ", bestMatch.point)
       bestMatch = { point: this.point, distance };
     }
 
