@@ -1,7 +1,7 @@
 import ColorsContext from "../context/colors-context";
 import KDTree from "../model/kd-tree";
 import classes from "./ColorsList.module.css";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo } from "react";
 
 const CONVERSION_MATRIX = [
   [0.4124564, 0.3575761, 0.1804375],
@@ -177,112 +177,129 @@ function convertXYZtoRGB(xyzPixel) {
   };
 }
 
-const ColorsList = () => {
-  const { colors } = useContext(ColorsContext);
-  const [scrapedColors, setScrapedColors] = useState({});
-
-  //scraping colors on first load
-  useEffect(() => {
-    fetch("http://localhost:5000/api/colors")
-      .then((response) => response.json())
-      .then((data) => setScrapedColors(data))
-      .catch((error) => console.error("Error fetching colors:", error));
-  }, []);
-
-  useEffect(() => {
-    console.log("Scraped Colors: ", scrapedColors);
-  }, [scrapedColors]);
+const ColorsList = ({ scrapedColors }) => {
+  const { capturedColors, setCapturedColors, colorPalette, setColorPalette } =
+    useContext(ColorsContext);
 
   //convert to array and filter out transparent pixels
-  const rgbArray_fromImg = Object.entries(colors).filter(
-    (color) => parseInt(color[0].split("A")[1]) !== 0
+  const rgbArray_fromImg = useMemo(
+    () =>
+      Object.entries(capturedColors)
+        .filter((color) => color[1].a !== 0)
+        .map((color) => color[1]),
+    [capturedColors]
   );
 
-  //prepping for matrix transformations
-  const rgbMatrix_fromImg = convertToMatrix(rgbArray_fromImg);
-  console.log("RGB Matrix from IMAGE:", rgbMatrix_fromImg);
+  //converting back to n*3 matrix for color comparison
+  const labValues_fromImg = useMemo(() => {
+    const labValues = [];
 
-  const rgbMatrix_lookupTable = convertToMatrix(Object.entries(scrapedColors));
-  console.log("RGB Matrix from LOOKUP TABLE", rgbMatrix_lookupTable);
+    //prep for matrix transformations
+    const r = rgbArray_fromImg.map((pixel) => pixel.r);
+    const g = rgbArray_fromImg.map((pixel) => pixel.g);
+    const b = rgbArray_fromImg.map((pixel) => pixel.b);
 
-  const xyzMatrix_fromImg = convertRGBtoXYZ(rgbMatrix_fromImg);
-  console.log("XYZ Matrix from IMAGE: ", xyzMatrix_fromImg);
+    const rgbMatrix_fromImg = [r, g, b];
+    const xyzMatrix_fromImg = convertRGBtoXYZ(rgbMatrix_fromImg);
 
-  const xyzMatrix_lookupTable = convertRGBtoXYZ(rgbMatrix_lookupTable);
-  console.log("XYZ Matrix from LOOKUP TABLE: ", xyzMatrix_lookupTable);
+    for (let i = 0; i < xyzMatrix_fromImg[0].length; i++) {
+      const pixel = [];
+      for (let j = 0; j < xyzMatrix_fromImg.length; j++) {
+        pixel.push(xyzMatrix_fromImg[j][i]);
+      }
+      const xyzPixel = {
+        x: pixel[0],
+        y: pixel[1],
+        z: pixel[2],
+      };
+      const labPixel = Object.values(convertXYZtoCIELAB(xyzPixel));
+      labValues.push(labPixel);
+    }
+    return labValues;
+  }, [rgbArray_fromImg]);
 
   //converting back to n*3 matrix for color comparison
-  const labValues_fromImg = [];
-  for (let i = 0; i < xyzMatrix_fromImg[0].length; i++) {
-    const pixel = [];
-    for (let j = 0; j < xyzMatrix_fromImg.length; j++) {
-      pixel.push(xyzMatrix_fromImg[j][i]);
+  const labValues_lookupTable = useMemo(() => {
+    const lookupTable = [];
+    const rgbMatrix_lookupTable = convertToMatrix(
+      Object.entries(scrapedColors)
+    );
+
+    const xyzMatrix_lookupTable = convertRGBtoXYZ(rgbMatrix_lookupTable);
+
+    for (let i = 0; i < xyzMatrix_lookupTable[0].length; i++) {
+      const pixel = [];
+      for (let j = 0; j < xyzMatrix_lookupTable.length; j++) {
+        pixel.push(xyzMatrix_lookupTable[j][i]);
+      }
+      const xyzPixel = {
+        x: pixel[0],
+        y: pixel[1],
+        z: pixel[2],
+      };
+      const labPixel = Object.values(convertXYZtoCIELAB(xyzPixel));
+      lookupTable.push(labPixel);
     }
-    const xyzPixel = {
-      x: pixel[0],
-      y: pixel[1],
-      z: pixel[2],
-    };
-    const labPixel = Object.values(convertXYZtoCIELAB(xyzPixel));
-    labValues_fromImg.push(labPixel);
-  }
-  console.log("Lab values from IMAGE: ", labValues_fromImg);
+    return lookupTable;
+  }, [scrapedColors]);
 
-  //converting back to n*3 matrix for color comparison
-  const labValues_lookupTable = [];
-  for (let i = 0; i < xyzMatrix_lookupTable[0].length; i++) {
-    const pixel = [];
-    for (let j = 0; j < xyzMatrix_lookupTable.length; j++) {
-      pixel.push(xyzMatrix_lookupTable[j][i]);
+  const colorLookupTree = useMemo(
+    () => new KDTree(labValues_lookupTable),
+    [labValues_lookupTable]
+  );
+
+  const outputColors = useMemo(() => {
+    //array of color-matched pixels (Objects)
+    const rgbPixels = labValues_fromImg.map((value) => {
+      const labPixel = colorLookupTree.findNearestNeighbor(value).point;
+      const xyzPixel = convertCIELABtoXYZ(labPixel);
+      return convertXYZtoRGB(xyzPixel);
+    });
+
+    const output = [];
+    const colorQuantities = rgbArray_fromImg.map((color) => color.quantity);
+    let totalPixels = 0;
+
+    for (let i = 0; i < rgbPixels.length; i++) {
+      const color = { ...rgbPixels[i] };
+      const { r, g, b } = color;
+      const colorKey = `R${r}G${g}B${b}`;
+      const name =
+        colorKey in scrapedColors ? scrapedColors[colorKey] : colorKey;
+      color.colorKey = colorKey;
+      color.name = name;
+      color.quantity = colorQuantities[i];
+      totalPixels += color?.quantity;
+      output.push(color);
     }
-    const xyzPixel = {
-      x: pixel[0],
-      y: pixel[1],
-      z: pixel[2],
-    };
-    const labPixel = Object.values(convertXYZtoCIELAB(xyzPixel));
-    labValues_lookupTable.push(labPixel);
-  }
-  console.log("Lab values from LOOKUP TABLE: ", labValues_lookupTable);
+    return output;
+  }, [colorLookupTree, labValues_fromImg, scrapedColors, rgbArray_fromImg]);
 
-  const colorLookupTree = new KDTree(labValues_lookupTable);
-
-  const rgbPixels = labValues_fromImg.map((value) => {
-    const labPixel = colorLookupTree.findNearestNeighbor(value).point;
-    const xyzPixel = convertCIELABtoXYZ(labPixel);
-    return convertXYZtoRGB(xyzPixel);
-  });
-
-  const colorQuantities = Object.entries(colors).map((color) => color[1]);
-  const colorPalette = [];
-  let totalPixels = 0;
-  for (let i = 0; i < rgbPixels.length; i++) {
-    const color = { ...rgbPixels[i] };
-    const { r, g, b } = color;
-    const colorKey = `R${r}G${g}B${b}`;
-    const name = colorKey in scrapedColors ? scrapedColors[colorKey] : colorKey;
-    color.colorKey = colorKey;
-    color.name = name;
-    color.quantity = colorQuantities[i];
-    totalPixels += color?.quantity;
-    colorPalette.push(color);
-  }
+  useEffect(() => {
+    setColorPalette(outputColors);
+  }, [outputColors, setColorPalette, colorPalette]);
 
   return (
     <>
-      <p>TOTAL BEAD COUNT -- {formatWithComma(totalPixels)}</p>
-      <ul className={classes.list}>
-        {colorPalette.map((color) => (
-          <li key={color.colorKey}>
-            <div
-              className={classes["color-swatch"]}
-              style={{ background: `rgb(${color.r}, ${color.g}, ${color.b})` }}
-            />
-            <span>{color.name}</span>
-            <span>{formatWithComma(color.quantity)}</span>
-          </li>
-        ))}
-      </ul>
+      {/* <p>BEAD COUNT -- {formatWithComma(totalPixels)}</p>
+      <p>COLORS -- {formatWithComma(colorQuantities.length)}</p> */}
+      <div className={classes["list-container"]}>
+        <ul className={classes.list}>
+          {Object.values(colorPalette).map((color) => (
+            <li key={color.colorKey}>
+              <div
+                className={classes["color-swatch"]}
+                style={{
+                  background: `rgb(${color.r}, ${color.g}, ${color.b})`,
+                }}
+              />
+              <span>{color.name}</span>
+              <span>{color.colorKey}</span>
+              <span>{formatWithComma(color.quantity)}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </>
   );
 };

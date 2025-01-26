@@ -33,10 +33,10 @@ class KDTree {
   findNearestNeighbor(
     targetPoint,
     level = 0,
-    bestMatch = { point: null, distance: Infinity }
+    bestMatch = { point: null, distance: Infinity },
   ) {
     if (!this.point) {
-      console.log("FINAL Best Match: ", bestMatch.point)
+      // console.log("FINAL Best Match: ", bestMatch.point)
       return bestMatch;
     }
     const axis = level % 3;
@@ -44,7 +44,7 @@ class KDTree {
 
     //update best match if current point is closer
     if (distance < bestMatch.distance) {
-      console.log("NEW Best Match: ", bestMatch.point)
+      // console.log("NEW Best Match: ", bestMatch.point)
       bestMatch = { point: this.point, distance };
     }
 

@@ -1,26 +1,39 @@
 import { createContext, useState, useCallback } from "react";
 
 const ColorsContext = createContext({
-  colors: {},
-  addPixel: () => {},
+  capturedColors: {},
+  setCapturedColors: () => {},
+  colorPalette: {},
+  setColorPalette: () => {},
   clearList: () => {},
 });
 
 export const ColorsContextProvider = ({ children }) => {
-  const [colors, setColors] = useState({});
+  const [capturedColors, setOriginalColors] = useState({});
+  const [colorPalette, updateColorPalette] = useState({});
 
-  const addPixel = useCallback((colorKey) => {
-    setColors((prev) => {
-      return { ...prev, [colorKey]: (prev[colorKey] || 0) + 1 };
-    });
+  const setCapturedColors = useCallback((colors) => {
+    setOriginalColors(colors);
   }, []);
 
   const clearList = useCallback(() => {
-    setColors({});
+    setOriginalColors({});
+  }, []);
+
+  const setColorPalette = useCallback((colors) => {
+    updateColorPalette(colors);
   }, []);
 
   return (
-    <ColorsContext.Provider value={{ colors, addPixel, clearList }}>
+    <ColorsContext.Provider
+      value={{
+        capturedColors,
+        setCapturedColors,
+        colorPalette,
+        setColorPalette,
+        clearList,
+      }}
+    >
       {children}
     </ColorsContext.Provider>
   );
