@@ -9,7 +9,6 @@ const ImageUploader = () => {
     const file = event.target.files[0];
 
     setUploadedImage(file);
-    console.log(file);
   }
 
   return (

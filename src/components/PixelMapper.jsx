@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import classes from "./PixelMapper.module.css";
 import ColorsContext from "../context/colors-context";
 
@@ -6,10 +6,19 @@ function PixelMapper({ file }) {
   const canvasRef = useRef(null);
   const { capturedColors, setCapturedColors, colorPalette, clearList } =
     useContext(ColorsContext);
+  const [imageDimensions, setImageDimensions] = useState({
+    width: 0,
+    height: 0,
+  });
 
   useEffect(() => {
     console.log("Color palette: ", colorPalette);
   }, [colorPalette]);
+  useEffect(() => {
+    console.log(
+      `Image Dimensions: ${imageDimensions.width}x${imageDimensions.height}`
+    );
+  }, [imageDimensions]);
 
   //fires when new image is uploaded by user
   useEffect(() => {
@@ -39,7 +48,7 @@ function PixelMapper({ file }) {
       setCapturedColors(capturedColors);
     }
 
-    // console.log("EFFECT RUNNING...");
+    console.log("CURRENT FILE: ", file);
     if (file) {
       const formData = new FormData();
       formData.append("image", file);
@@ -48,9 +57,11 @@ function PixelMapper({ file }) {
       const image = new Image();
 
       image.onload = () => {
+        context.clearRect(0, 0, image.width, image.height);
         canvas.width = image.width;
         canvas.height = image.height;
         context.drawImage(image, 0, 0);
+        setImageDimensions({ width: image.width, height: image.height });
       };
       image.src = URL.createObjectURL(file);
 
@@ -75,45 +86,48 @@ function PixelMapper({ file }) {
       return;
     }
     const canvas = canvasRef.current;
+    const context = canvas.getContext("2d");
+    let newImageURL;
 
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        console.error("Failed to create blob from canvas");
-        return;
-      }
-      const newImageURL = URL.createObjectURL(blob);
-      const image = new Image();
-      image.onload = () => {
-        const context = canvas.getContext("2d");
-        context.clearRect(0, 0, canvas.width, canvas.height); //need to clear canvas before redraw
-        canvas.width = image.width;
-        canvas.height = image.height;
-        context.drawImage(image, 0, 0);
+    const colorsArray = Object.values(colorPalette);
+    const pixelData = new Uint8ClampedArray(
+      imageDimensions.width * imageDimensions.height * 4
+    ); // RGBA per pixel
 
-        const imageData = context.getImageData(
-          0,
-          0,
-          canvas.width,
-          canvas.height
-        );
+    colorsArray.forEach(({ r, g, b, a }, index) => {
+      const baseIndex = index * 4;
+      pixelData[baseIndex] = r; // Red
+      pixelData[baseIndex + 1] = g; // Green
+      pixelData[baseIndex + 2] = b; // Blue
+      pixelData[baseIndex + 3] = a ?? 255; // Alpha (default to 255 if undefined)
+    });
 
-        // Log the pixel data
-        console.log("Canvas Image Data:", imageData.data);
+    const imageData = new ImageData(
+      pixelData,
+      imageDimensions.width,
+      imageDimensions.height
+    );
+    context.putImageData(imageData, 0, 0);
 
-        // Revoke the Blob URL once the image is fully loaded and drawn
+    // Export the canvas as a Blob
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          console.error("Failed to create blob from canvas");
+          return;
+        }
+        newImageURL = URL.createObjectURL(blob);
+        console.log("New Blob URL:", newImageURL);
+
+        // Clean up the Blob URL after it's used
         URL.revokeObjectURL(newImageURL);
-        console.log("Blob URL revoked:", newImageURL);
-      };
+      },
+      "image/png",
+      1.0 // Quality parameter for PNG
+    );
 
-      image.onerror = (error) => {
-        console.error("Error loading image:", error);
-        URL.revokeObjectURL(newImageURL); // Clean up even on error
-      };
-
-      console.log("New URL:", newImageURL);
-      image.src = newImageURL;
-    }, "image/png");
-  }, [file, colorPalette]);
+    return () => clearList();
+  }, [file, colorPalette, clearList, imageDimensions]);
 
   return <canvas ref={canvasRef} className={classes.canvas} />;
 }
