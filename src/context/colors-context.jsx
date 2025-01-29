@@ -1,39 +1,57 @@
-import { createContext, useState, useCallback } from "react";
+import { createContext, useState, useCallback, useMemo } from "react";
 
 const ColorsContext = createContext({
-  capturedColors: {},
-  setCapturedColors: () => {},
   colorPalette: {},
   setColorPalette: () => {},
-  clearList: () => {},
+  imagePixelData: {},
+  setImagePixelData: () => {},
+  lookupTableValues: [],
+  setLookupTableValues: () => {},
 });
 
 export const ColorsContextProvider = ({ children }) => {
-  const [capturedColors, setOriginalColors] = useState({});
   const [colorPalette, updateColorPalette] = useState({});
-
-  const setCapturedColors = useCallback((colors) => {
-    setOriginalColors(colors);
-  }, []);
-
-  const clearList = useCallback(() => {
-    setOriginalColors({});
-  }, []);
+  const [imagePixelData, updateImagePixelData] = useState({});
+  const [lookupTableValues, updateLookupTableValues] = useState([]);
 
   const setColorPalette = useCallback((colors) => {
     updateColorPalette(colors);
   }, []);
 
+  const setImagePixelData = useCallback((data) => {
+    updateImagePixelData(data);
+  }, []);
+
+  const setLookupTableValues = useCallback((values) => {
+    updateLookupTableValues(values);
+  }, []);
+
+  /**
+   * useMemo ensures different states can be independently 
+   * updated without causing unnecessary re-renders to all
+   * consuming components
+   */
+  const contextValue = useMemo(
+    () => ({
+      colorPalette,
+      setColorPalette,
+      imagePixelData,
+      setImagePixelData,
+      lookupTableValues,
+      setLookupTableValues,
+    }),
+    [
+      colorPalette,
+      setColorPalette,
+      imagePixelData,
+      setImagePixelData,
+      lookupTableValues,
+      setLookupTableValues,
+    ]
+  );
+
   return (
-    <ColorsContext.Provider
-      value={{
-        capturedColors,
-        setCapturedColors,
-        colorPalette,
-        setColorPalette,
-        clearList,
-      }}
-    >
+    <ColorsContext.Provider value={contextValue}>
       {children}
     </ColorsContext.Provider>
   );

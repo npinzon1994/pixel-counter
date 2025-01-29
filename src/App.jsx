@@ -5,9 +5,9 @@ import ImageUploader from "./components/ImageUploader";
 import ColorsContext from "./context/colors-context";
 
 function App() {
-  const { capturedColors } = useContext(ColorsContext);
+  const { colorPalette } = useContext(ColorsContext);
   const [scrapedColors, setScrapedColors] = useState({});
-  const colorsNotEmpty = Object.values(capturedColors).length > 0;
+  const colorsNotEmpty = Object.values(colorPalette).length > 0;
 
   //scraping colors on first load
   useEffect(() => {

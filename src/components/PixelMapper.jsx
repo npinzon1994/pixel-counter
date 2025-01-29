@@ -4,109 +4,92 @@ import ColorsContext from "../context/colors-context";
 
 function PixelMapper({ file }) {
   const canvasRef = useRef(null);
-  const { capturedColors, setCapturedColors, colorPalette, clearList } =
-    useContext(ColorsContext);
-  const [imageDimensions, setImageDimensions] = useState({
-    width: 0,
-    height: 0,
-  });
+  const fileRef = useRef(null);
 
-  useEffect(() => {
-    console.log("Color palette: ", colorPalette);
-  }, [colorPalette]);
-  useEffect(() => {
-    console.log(
-      `Image Dimensions: ${imageDimensions.width}x${imageDimensions.height}`
-    );
-  }, [imageDimensions]);
+  const {
+    setColorPalette,
+    colorPalette,
+    imagePixelData,
+    setImagePixelData,
+    lookupTableValues,
+    setLookupTableValues,
+  } = useContext(ColorsContext);
+  const [blobURL, setBlobURL] = useState(null);
 
-  //fires when new image is uploaded by user
+  //1st effect -- FILE UPLOAD
   useEffect(() => {
-    function parsePixels(rgbStream) {
-      const capturedColors = {};
-      for (let i = 0; i < rgbStream.length; i += 4) {
-        const r = rgbStream[i];
-        const g = rgbStream[i + 1];
-        const b = rgbStream[i + 2];
-        const a = rgbStream[i + 3];
-        const colorKey = `R${r}G${g}B${b}A${a}`;
+    if (!file || fileRef.current === file) {
+      return;
+    }
+    console.log("File changed!");
+    fileRef.current = file;
+    console.log("Clearing color palette...");
+    setColorPalette({});
 
-        if (colorKey in capturedColors) {
-          capturedColors[colorKey].quantity++;
-        } else {
-          capturedColors[colorKey] = {
-            colorKey,
-            name: "",
-            r,
-            g,
-            b,
-            a,
-            quantity: 1,
-          };
-        }
+    const formData = new FormData();
+    formData.append("image", file);
+
+    fetch("/api/upload-image", { method: "POST", body: formData })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Setting image pixel data...");
+        setImagePixelData(data);
+        // setLookupTableValues(data.lookupTable_LabValues);
+      })
+      .catch(console.error);
+  }, [file, setColorPalette, setImagePixelData]);
+
+  //2nd effect -- IMAGE PROCESSING
+  useEffect(() => {
+    if (!imagePixelData.pixels) {
+      return;
+    }
+    console.log("Image pixel data changed!");
+    const colors = {};
+    const { pixels } = imagePixelData;
+
+    for (let i = 0; i < pixels.length; i += 4) {
+      const r = pixels[i];
+      const g = pixels[i + 1];
+      const b = pixels[i + 2];
+      const a = pixels[i + 3];
+      const colorKey = `R${r}G${g}B${b}A${a}`;
+
+      if (!colors[colorKey]) {
+        colors[colorKey] = { colorKey, r, g, b, a, quantity: 1 };
+      } else {
+        colors[colorKey].quantity++;
       }
-      setCapturedColors(capturedColors);
     }
+    console.log("Setting color palette...");
+    setColorPalette(colors);
+  }, [imagePixelData, setColorPalette]);
 
-    console.log("CURRENT FILE: ", file);
-    if (file) {
-      const formData = new FormData();
-      formData.append("image", file);
-      const canvas = canvasRef.current;
-      const context = canvas.getContext("2d");
-      const image = new Image();
-
-      image.onload = () => {
-        context.clearRect(0, 0, image.width, image.height);
-        canvas.width = image.width;
-        canvas.height = image.height;
-        context.drawImage(image, 0, 0);
-        setImageDimensions({ width: image.width, height: image.height });
-      };
-      image.src = URL.createObjectURL(file);
-
-      fetch("/api/upload-image", { method: "POST", body: formData })
-        .then((res) => res.json())
-        .then((data) => {
-          const pixels = data.pixels;
-          parsePixels(pixels);
-        })
-        .catch(console.error);
-    }
-
-    return () => {
-      console.log("CLEARING LIST...");
-      clearList();
-    };
-  }, [file, setCapturedColors, clearList]);
-
-  //fires when we get back the modified color palette
+  //3rd effect -- DRAW IMAGE TO CANVAS
   useEffect(() => {
-    if (!file || !colorPalette || Object.keys(colorPalette).length === 0) {
+    console.log("Effect 3 running...");
+    console.log("Color Palette: ", colorPalette);
+
+    if (!colorPalette || Object.keys(colorPalette).length === 0) {
       return;
     }
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
-    let newImageURL;
+    const { width, height, pixels } = imagePixelData;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.width = width;
+    canvas.height = height;
 
-    const colorsArray = Object.values(colorPalette);
-    const pixelData = new Uint8ClampedArray(
-      imageDimensions.width * imageDimensions.height * 4
-    ); // RGBA per pixel
+    const pixelData = new Uint8ClampedArray(width * height * 4);
 
-    colorsArray.forEach(({ r, g, b, a }, index) => {
-      const baseIndex = index * 4;
-      pixelData[baseIndex] = r; // Red
-      pixelData[baseIndex + 1] = g; // Green
-      pixelData[baseIndex + 2] = b; // Blue
-      pixelData[baseIndex + 3] = a ?? 255; // Alpha (default to 255 if undefined)
-    });
+    for (let i = 0; i < pixels.length; i += 4) {
+      pixelData[i] = pixels[i];
+      pixelData[i + 1] = pixels[i + 1];
+      pixelData[i + 2] = pixels[i + 2];
+      pixelData[i + 3] = pixels[i + 3];
+    }
 
-    const imageData = new ImageData(
-      pixelData,
-      imageDimensions.width,
-      imageDimensions.height
-    );
+    const imageData = new ImageData(pixelData, width, height);
     context.putImageData(imageData, 0, 0);
 
     // Export the canvas as a Blob
@@ -116,18 +99,17 @@ function PixelMapper({ file }) {
           console.error("Failed to create blob from canvas");
           return;
         }
-        newImageURL = URL.createObjectURL(blob);
-        console.log("New Blob URL:", newImageURL);
+        const url = URL.createObjectURL(blob);
+        console.log("URL: ", url);
+        // setBlobURL(url);
 
         // Clean up the Blob URL after it's used
-        URL.revokeObjectURL(newImageURL);
+        return () => URL.revokeObjectURL(url);
       },
       "image/png",
       1.0 // Quality parameter for PNG
     );
-
-    return () => clearList();
-  }, [file, colorPalette, clearList, imageDimensions]);
+  }, [colorPalette, imagePixelData]);
 
   return <canvas ref={canvasRef} className={classes.canvas} />;
 }

@@ -3,7 +3,7 @@ import { useState } from "react";
 import PixelMapper from "./PixelMapper";
 
 const ImageUploader = () => {
-  const [uploadedImage, setUploadedImage] = useState("");
+  const [uploadedImage, setUploadedImage] = useState(null);
 
   function uploadImage(event) {
     const file = event.target.files[0];
@@ -23,7 +23,9 @@ const ImageUploader = () => {
           onChange={uploadImage}
         />
       </form>
-      {uploadedImage ? <PixelMapper file={uploadedImage} /> : undefined}
+      {uploadedImage ? (
+        <PixelMapper file={uploadedImage} />
+      ) : undefined}
     </>
   );
 };
