@@ -1,10 +1,10 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import classes from "./PixelMapper.module.css";
 import ColorsContext from "../context/colors-context";
+import Slider from "./Slider";
 
 function PixelMapper({ file }) {
   const canvasRef = useRef(null);
-  const gridRef = useRef(null);
   const fileRef = useRef(null);
 
   const {
@@ -15,7 +15,13 @@ function PixelMapper({ file }) {
     lookupTableValues,
     setLookupTableValues,
   } = useContext(ColorsContext);
+
   const [grid, setGrid] = useState([]);
+  const [zoomLevel, setZoomLevel] = useState(3);
+
+  const setZoomLevelHandler = (event) => {
+    setZoomLevel(+event.target.value);
+  };
 
   //1st effect -- FILE UPLOAD
   useEffect(() => {
@@ -75,9 +81,9 @@ function PixelMapper({ file }) {
       return;
     }
 
-    const scaleFactor = 10;
     const { width, height, pixels } = imagePixelData;
 
+    //SET UP GRID
     const verticalLines = [];
     for (let i = 0; i <= width; i++) {
       const line = (
@@ -87,7 +93,7 @@ function PixelMapper({ file }) {
           y1={0}
           x2={i}
           y2={height + 1}
-          strokeWidth={0.1}
+          strokeWidth={0.15}
           stroke="rgb(0, 0, 0, 1)"
         />
       );
@@ -98,11 +104,12 @@ function PixelMapper({ file }) {
     for (let i = 0; i <= height; i++) {
       const line = (
         <line
+          key={`h-${i}`}
           x1={0}
           y1={i}
           x2={width + 1}
           y2={i}
-          strokeWidth={0.1}
+          strokeWidth={0.15}
           stroke="rgb(0, 0, 0, 1)"
         />
       );
@@ -111,10 +118,9 @@ function PixelMapper({ file }) {
 
     const grid_svg = (
       <svg
-        width={width}
-        height={height}
         viewBox={`0 0 ${width} ${height}`}
-        className={classes["grid_svg"]}
+        className={classes["grid-svg"]}
+        preserveAspectRatio="xMidYmid meet"
       >
         {verticalLines}
         {horizontalLines}
@@ -122,31 +128,19 @@ function PixelMapper({ file }) {
     );
     setGrid(grid_svg);
 
-    //set up canvases
+    //SET UP CANVAS
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
-    const grid = gridRef.current;
-    // const gridContext = grid.getContext("2d");
 
-    //clearing prev img
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    // gridContext.clearRect(0, 0, grid.width, grid.height);
+    context.clearRect(0, 0, canvas.width, canvas.height); //clearing prev img
+    context.setTransform(1, 0, 0, 1, 0, 0); //reset transformation
 
-    //reset transformation
-    context.setTransform(1, 0, 0, 1, 0, 0);
-    // gridContext.setTransform(1, 0, 0, 1, 0, 0);
-
-    //establishing dimensions - scaling up canvas size to allow for grid lines
+    //Account for Zoom Level
     canvas.width = width;
     canvas.height = height;
-    // grid.width = width;
-    // grid.height = height;
-
-    context.scale(scaleFactor, scaleFactor);
-    // gridContext.scale(scaleFactor, scaleFactor);
+    // context.scale(zoomLevel, zoomLevel);
 
     //gather data and draw image
-    //use original width and height for pixels & grid because scaling happens separately
     const pixelData = new Uint8ClampedArray(width * height * 4);
 
     for (let i = 0; i < pixels.length; i += 4) {
@@ -159,26 +153,6 @@ function PixelMapper({ file }) {
     const imageData = new ImageData(pixelData, width, height);
     context.putImageData(imageData, 0, 0);
 
-    // const lineWidth = 1 / scaleFactor;
-
-    //draw grid lines
-    // gridContext.strokeStyle = "black";
-    // gridContext.lineWidth = lineWidth;
-
-    // for (let x = 0; x < grid.width; x++) {
-    //   gridContext.beginPath();
-    //   gridContext.moveTo(x + 0.5, 0);
-    //   gridContext.lineTo(x + 0.5, grid.height);
-    //   gridContext.stroke();
-    // }
-
-    // for (let y = 0; y < grid.height; y++) {
-    //   gridContext.beginPath();
-    //   gridContext.moveTo(0, y);
-    //   gridContext.lineTo(grid.width, y);
-    //   gridContext.stroke();
-    // }
-
     // Export the canvas as a Blob
     canvas.toBlob(
       (blob) => {
@@ -188,7 +162,6 @@ function PixelMapper({ file }) {
         }
         const url = URL.createObjectURL(blob);
         console.log("URL: ", url);
-        // setBlobURL(url);
 
         // Clean up the Blob URL after it's used
         return () => URL.revokeObjectURL(url);
@@ -196,13 +169,37 @@ function PixelMapper({ file }) {
       "image/png",
       1.0 // Quality parameter for PNG
     );
-  }, [colorPalette, imagePixelData]);
+  }, [colorPalette, imagePixelData, zoomLevel]);
+
+  function filterChars(event) {
+    const char = event.target.value;
+    if(char === "0" || char === "e") {
+      event.preventDefault();
+    }
+  }
 
   return (
-    <div className={classes["canvas-container"]}>
-      <canvas ref={canvasRef} className={classes.canvas} />
-      {grid ? grid : undefined}
-    </div>
+    <>
+      <div>
+        <label htmlFor="zoom">Zoom</label>
+        <input
+          type="number"
+          id="zoom"
+          value={zoomLevel}
+          onChange={setZoomLevelHandler}
+          step={0.2}
+          min={1}
+          max={40}
+        />
+      </div>
+      <div
+        className={classes["canvas-container"]}
+        style={{ transform: `scale(${zoomLevel})` }}
+      >
+        <canvas ref={canvasRef} className={classes.canvas} />
+        {grid ? grid : undefined}
+      </div>
+    </>
   );
 }
 
