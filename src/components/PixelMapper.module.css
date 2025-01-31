@@ -1,14 +1,21 @@
+#main {
+  position: relative;
+  height: 100vh;
+  flex: 1;
+  border-left: solid rgb(165, 165, 165) 1px;
+  border-right: solid rgb(165, 165, 165) 1px;
+}
+
 .canvas-container {
   position: relative;
   display: inline-block;
-  transform-origin: top center;
+  transform-origin: top left;
 }
 
 .canvas {
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
   display: block;
-  background: coral;
   width: 100%;
   height: 100%;
 }

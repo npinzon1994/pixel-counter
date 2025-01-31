@@ -31,26 +31,26 @@ const ColorsList = ({ scrapedColors }) => {
   const filteredColors = outputColors.filter((color) => color.a !== 0);
 
   return (
-    <>
-      <p>BEAD COUNT -- {formatWithComma(totalPixels)}</p>
-      <p>COLORS -- {formatWithComma(filteredColors.length)}</p>
-      <div className={classes["list-container"]}>
-        <ul className={classes.list}>
-          {filteredColors.map((color) => (
-            <li key={color.colorKey}>
-              <div
-                className={classes["color-swatch"]}
-                style={{
-                  background: `rgb(${color.r}, ${color.g}, ${color.b})`,
-                }}
-              />
-              <span>{color.name}</span>
-              <span>{formatWithComma(color.quantity)}</span>
-            </li>
-          ))}
-        </ul>
+    <aside className={classes.wrapper}>
+      <div className={classes['bead-counts']}>
+        <p>BEAD COUNT: {formatWithComma(totalPixels)}</p>
+        <p>COLORS: {formatWithComma(filteredColors.length)}</p>
       </div>
-    </>
+      <ul className={classes.list}>
+        {filteredColors.map((color) => (
+          <li key={color.colorKey}>
+            <div
+              className={classes["color-swatch"]}
+              style={{
+                background: `rgb(${color.r}, ${color.g}, ${color.b})`,
+              }}
+            />
+            <span>{color.name}</span>
+            <span>{formatWithComma(color.quantity)}</span>
+          </li>
+        ))}
+      </ul>
+    </aside>
   );
 };
 

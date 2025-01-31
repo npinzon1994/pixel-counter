@@ -1,14 +1,19 @@
-.list-container {
+.bead-counts p {
+    margin: 0;
+}
+
+.wrapper {
+    max-height: 100vh;
     display: flex;
-    gap: 1rem;
-    
+    flex-direction: column;
 }
 
 .list {
-    background: #e8e8e8;
+    background: #1a1a1a;
     list-style-type: none;
     padding-left: 0;
     flex: 1;
+    overflow-y: auto;
 }
 
 .list li {

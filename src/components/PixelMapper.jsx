@@ -17,10 +17,15 @@ function PixelMapper({ file }) {
   } = useContext(ColorsContext);
 
   const [grid, setGrid] = useState([]);
-  const [zoomLevel, setZoomLevel] = useState(3);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [showGrid, setShowGrid] = useState(false);
 
   const setZoomLevelHandler = (event) => {
     setZoomLevel(+event.target.value);
+  };
+
+  const toggleGrid = () => {
+    setShowGrid((prev) => !prev);
   };
 
   //1st effect -- FILE UPLOAD
@@ -28,7 +33,7 @@ function PixelMapper({ file }) {
     if (!file || fileRef.current === file) {
       return;
     }
-    console.log("File changed!");
+    console.log("New File: ", file);
     fileRef.current = file;
     console.log("Clearing color palette...");
     setColorPalette({});
@@ -171,15 +176,8 @@ function PixelMapper({ file }) {
     );
   }, [colorPalette, imagePixelData, zoomLevel]);
 
-  function filterChars(event) {
-    const char = event.target.value;
-    if(char === "0" || char === "e") {
-      event.preventDefault();
-    }
-  }
-
   return (
-    <>
+    <main id={classes.main}>
       <div>
         <label htmlFor="zoom">Zoom</label>
         <input
@@ -191,15 +189,18 @@ function PixelMapper({ file }) {
           min={1}
           max={40}
         />
+        <button type="button" onClick={toggleGrid}>
+          Grid
+        </button>
       </div>
       <div
         className={classes["canvas-container"]}
         style={{ transform: `scale(${zoomLevel})` }}
       >
         <canvas ref={canvasRef} className={classes.canvas} />
-        {grid ? grid : undefined}
+        {showGrid ? grid : undefined}
       </div>
-    </>
+    </main>
   );
 }
 

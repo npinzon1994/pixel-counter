@@ -7,12 +7,15 @@ const ColorsContext = createContext({
   setImagePixelData: () => {},
   lookupTableValues: [],
   setLookupTableValues: () => {},
+  uploadedImage: null,
+  setUploadedImage: () => {},
 });
 
 export const ColorsContextProvider = ({ children }) => {
   const [colorPalette, updateColorPalette] = useState({});
   const [imagePixelData, updateImagePixelData] = useState({});
   const [lookupTableValues, updateLookupTableValues] = useState([]);
+  const [uploadedImage, updateUploadedImage] = useState(null);
 
   const setColorPalette = useCallback((colors) => {
     updateColorPalette(colors);
@@ -26,8 +29,12 @@ export const ColorsContextProvider = ({ children }) => {
     updateLookupTableValues(values);
   }, []);
 
+  const setUploadedImage = useCallback((file) => {
+    updateUploadedImage(file);
+  }, []);
+
   /**
-   * useMemo ensures different states can be independently 
+   * useMemo ensures different states can be independently
    * updated without causing unnecessary re-renders to all
    * consuming components
    */
@@ -39,6 +46,8 @@ export const ColorsContextProvider = ({ children }) => {
       setImagePixelData,
       lookupTableValues,
       setLookupTableValues,
+      uploadedImage,
+      setUploadedImage,
     }),
     [
       colorPalette,
@@ -47,6 +56,8 @@ export const ColorsContextProvider = ({ children }) => {
       setImagePixelData,
       lookupTableValues,
       setLookupTableValues,
+      uploadedImage,
+      setUploadedImage,
     ]
   );
 
