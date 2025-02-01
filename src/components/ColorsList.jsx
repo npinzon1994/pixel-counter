@@ -1,7 +1,7 @@
 import ColorsContext from "../context/colors-context";
 import KDTree from "../model/kd-tree";
 import classes from "./ColorsList.module.css";
-import { useContext, useEffect, useMemo } from "react";
+import { useContext } from "react";
 
 const formatWithComma = (number) => Intl.NumberFormat("en-US").format(number);
 

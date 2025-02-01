@@ -1,9 +1,10 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import classes from "./PixelMapper.module.css";
 import ColorsContext from "../context/colors-context";
-import Slider from "./Slider";
+import { generateGrid } from "../util/grid";
+import ControlsContext from "../context/controls-context";
 
-function PixelMapper({ file }) {
+function PixelMapper() {
   const canvasRef = useRef(null);
   const fileRef = useRef(null);
 
@@ -12,34 +13,119 @@ function PixelMapper({ file }) {
     colorPalette,
     imagePixelData,
     setImagePixelData,
+    uploadedImage,
     lookupTableValues,
     setLookupTableValues,
   } = useContext(ColorsContext);
 
+  const {
+    backgroundSettings,
+    gridSettings,
+    boardSize,
+    zoomLevel,
+    setZoomLevel,
+    toggleGrid,
+  } = useContext(ControlsContext);
+
   const [grid, setGrid] = useState([]);
-  const [zoomLevel, setZoomLevel] = useState(1);
-  const [showGrid, setShowGrid] = useState(false);
 
-  const setZoomLevelHandler = (event) => {
-    setZoomLevel(+event.target.value);
-  };
+  const [isHovering, setIsHovering] = useState(false);
+  const [spacePressed, setSpacePressed] = useState(false);
+  const [isGrabbing, setIsGrabbing] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
 
-  const toggleGrid = () => {
-    setShowGrid((prev) => !prev);
-  };
+  function handleMouseDown() {
+    if (spacePressed) {
+      setIsGrabbing(true);
+    }
+  }
+
+  function handleMouseMove(event) {
+    if (isGrabbing) {
+      event.preventDefault();
+      setPosition((prev) => {
+        // Calculate the new position
+        const newX = prev.x + event.movementX / zoomLevel;
+        const newY = prev.y + event.movementY / zoomLevel;
+
+        const canvas = canvasRef.current;
+
+        // Get the bounds of the main container
+        const mainElement = document.getElementById(classes.main);
+
+        // Get the current width/height of the canvas
+        const canvasWidth = canvas.width * zoomLevel;
+        const canvasHeight = canvas.height * zoomLevel;
+
+        // Get the boundaries of the main element
+        const mainWidth = mainElement.offsetWidth;
+        const mainHeight = mainElement.offsetHeight;
+
+        // Calculate bounds considering center alignment
+        const minX = (mainWidth - canvasWidth) / 2;
+        const maxX = (canvasWidth - mainWidth) / 2;
+        const minY = (mainHeight - canvasHeight) / 2;
+        const maxY = (canvasHeight - mainHeight) / 2;
+
+        // Restrict the position within the bounds
+        const boundedX = Math.min(Math.max(newX, minX), maxX);
+        const boundedY = Math.min(Math.max(newY, minY), maxY);
+
+        return {
+          x: boundedX,
+          y: boundedY,
+        };
+      });
+    }
+  }
+
+  function handleMouseUp() {
+    setIsGrabbing(false);
+  }
+
+  //listening for spacebar press
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === " " && event.target === document.body) {
+        event.preventDefault();
+      }
+      if (isHovering && event.key === " " && !spacePressed) {
+        setSpacePressed(true);
+      }
+    };
+    const handleKeyUp = (event) => {
+      if (isHovering && event.key === " ") {
+        setSpacePressed(false);
+        setIsGrabbing(false);
+      }
+    };
+
+    if (isHovering) {
+      window.addEventListener("keydown", handleKeyDown);
+      window.addEventListener("keyup", handleKeyUp);
+    } else {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    }
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, [spacePressed, isHovering]);
 
   //1st effect -- FILE UPLOAD
   useEffect(() => {
-    if (!file || fileRef.current === file) {
+    if (!uploadedImage || fileRef.current === uploadedImage) {
       return;
     }
-    console.log("New File: ", file);
-    fileRef.current = file;
+    console.log("New File: ", uploadedImage);
+    fileRef.current = uploadedImage;
     console.log("Clearing color palette...");
     setColorPalette({});
 
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append("image", uploadedImage);
 
     fetch("/api/upload-image", { method: "POST", body: formData })
       .then((res) => res.json())
@@ -49,7 +135,7 @@ function PixelMapper({ file }) {
         // setLookupTableValues(data.lookupTable_LabValues);
       })
       .catch(console.error);
-  }, [file, setColorPalette, setImagePixelData]);
+  }, [uploadedImage, setColorPalette, setImagePixelData]);
 
   //2nd effect -- IMAGE PROCESSING
   useEffect(() => {
@@ -88,47 +174,17 @@ function PixelMapper({ file }) {
 
     const { width, height, pixels } = imagePixelData;
 
-    //SET UP GRID
-    const verticalLines = [];
-    for (let i = 0; i <= width; i++) {
-      const line = (
-        <line
-          key={`v-${i}`}
-          x1={i}
-          y1={0}
-          x2={i}
-          y2={height + 1}
-          strokeWidth={0.15}
-          stroke="rgb(0, 0, 0, 1)"
-        />
-      );
-      verticalLines.push(line);
-    }
-
-    const horizontalLines = [];
-    for (let i = 0; i <= height; i++) {
-      const line = (
-        <line
-          key={`h-${i}`}
-          x1={0}
-          y1={i}
-          x2={width + 1}
-          y2={i}
-          strokeWidth={0.15}
-          stroke="rgb(0, 0, 0, 1)"
-        />
-      );
-      horizontalLines.push(line);
-    }
+    const gridLines = generateGrid(
+      width,
+      height,
+      boardSize,
+      gridSettings.color
+    );
 
     const grid_svg = (
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        className={classes["grid-svg"]}
-        preserveAspectRatio="xMidYmid meet"
-      >
-        {verticalLines}
-        {horizontalLines}
+      <svg viewBox={`0 0 ${width} ${height}`} className={classes["grid-svg"]}>
+        {gridLines.vertLines}
+        {gridLines.horizLines}
       </svg>
     );
     setGrid(grid_svg);
@@ -174,31 +230,32 @@ function PixelMapper({ file }) {
       "image/png",
       1.0 // Quality parameter for PNG
     );
-  }, [colorPalette, imagePixelData, zoomLevel]);
+  }, [colorPalette, imagePixelData, zoomLevel, gridSettings, boardSize]);
 
   return (
-    <main id={classes.main}>
-      <div>
-        <label htmlFor="zoom">Zoom</label>
-        <input
-          type="number"
-          id="zoom"
-          value={zoomLevel}
-          onChange={setZoomLevelHandler}
-          step={0.2}
-          min={1}
-          max={40}
-        />
-        <button type="button" onClick={toggleGrid}>
-          Grid
-        </button>
-      </div>
+    <main
+      id={classes.main}
+      className={`${spacePressed ? classes["space-pressed"] : ""} ${
+        isGrabbing ? classes["is-grabbing"] : ""
+      }`}
+      onMouseOver={() => setIsHovering(true)}
+      onMouseOut={() => setIsHovering(false)}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseMove={handleMouseMove}
+    >
       <div
         className={classes["canvas-container"]}
-        style={{ transform: `scale(${zoomLevel})` }}
+        style={{
+          transform: `scale(${zoomLevel}) translate(${position.x}px, ${position.y}px)`,
+        }}
       >
-        <canvas ref={canvasRef} className={classes.canvas} />
-        {showGrid ? grid : undefined}
+        <canvas
+          ref={canvasRef}
+          className={classes.canvas}
+          style={{ background: backgroundSettings.color }}
+        />
+        {gridSettings.isVisible ? grid : undefined}
       </div>
     </main>
   );

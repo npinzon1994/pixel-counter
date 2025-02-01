@@ -6,10 +6,9 @@ import PixelMapper from "./components/PixelMapper";
 import Controls from "./components/Controls";
 
 function App() {
-  const { colorPalette, setImagePixelData, uploadedImage } =
-    useContext(ColorsContext);
-  const [scrapedColors, setScrapedColors] = useState({});
+  const { colorPalette, setImagePixelData } = useContext(ColorsContext);
   const colorsNotEmpty = Object.values(colorPalette).length > 0;
+  const [scrapedColors, setScrapedColors] = useState({});
 
   //scraping colors on first load
   useEffect(() => {
@@ -31,13 +30,13 @@ function App() {
 
   return (
     <div id={classes["main-wrapper"]}>
+      <Controls />
+      <PixelMapper />
       {colorsNotEmpty ? (
         <ColorsList scrapedColors={scrapedColors} />
       ) : (
         <p>NO IMAGE SELECTED</p>
       )}
-      <PixelMapper file={uploadedImage} />
-      <Controls />
     </div>
   );
 }
