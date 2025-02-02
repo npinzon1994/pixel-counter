@@ -1,4 +1,10 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import {
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  useLayoutEffect,
+} from "react";
 import classes from "./PixelMapper.module.css";
 import ColorsContext from "../context/colors-context";
 import { generateGrid } from "../util/grid";
@@ -6,7 +12,9 @@ import ControlsContext from "../context/controls-context";
 
 function PixelMapper() {
   const canvasRef = useRef(null);
+  const canvasContainerRef = useRef(null);
   const fileRef = useRef(null);
+  const mainRef = useRef(null);
 
   const {
     setColorPalette,
@@ -18,21 +26,14 @@ function PixelMapper() {
     setLookupTableValues,
   } = useContext(ColorsContext);
 
-  const {
-    backgroundSettings,
-    gridSettings,
-    boardSize,
-    zoomLevel,
-    setZoomLevel,
-    toggleGrid,
-  } = useContext(ControlsContext);
+  const { backgroundSettings, gridSettings, boardSize, zoomLevel } =
+    useContext(ControlsContext);
 
   const [grid, setGrid] = useState([]);
 
   const [isHovering, setIsHovering] = useState(false);
   const [spacePressed, setSpacePressed] = useState(false);
   const [isGrabbing, setIsGrabbing] = useState(false);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
 
   function handleMouseDown() {
     if (spacePressed) {
@@ -42,40 +43,13 @@ function PixelMapper() {
 
   function handleMouseMove(event) {
     if (isGrabbing) {
-      event.preventDefault();
-      setPosition((prev) => {
-        // Calculate the new position
-        const newX = prev.x + event.movementX / zoomLevel;
-        const newY = prev.y + event.movementY / zoomLevel;
-
-        const canvas = canvasRef.current;
-
-        // Get the bounds of the main container
-        const mainElement = document.getElementById(classes.main);
-
-        // Get the current width/height of the canvas
-        const canvasWidth = canvas.width * zoomLevel;
-        const canvasHeight = canvas.height * zoomLevel;
-
-        // Get the boundaries of the main element
-        const mainWidth = mainElement.offsetWidth;
-        const mainHeight = mainElement.offsetHeight;
-
-        // Calculate bounds considering center alignment
-        const minX = (mainWidth - canvasWidth) / 2;
-        const maxX = (canvasWidth - mainWidth) / 2;
-        const minY = (mainHeight - canvasHeight) / 2;
-        const maxY = (canvasHeight - mainHeight) / 2;
-
-        // Restrict the position within the bounds
-        const boundedX = Math.min(Math.max(newX, minX), maxX);
-        const boundedY = Math.min(Math.max(newY, minY), maxY);
-
-        return {
-          x: boundedX,
-          y: boundedY,
-        };
-      });
+      const mainContainer = mainRef.current;
+      if (!mainContainer) {
+        return;
+      }
+      const scrollSpeed = 1;
+      mainContainer.scrollLeft -= event.movementX * scrollSpeed;
+      mainContainer.scrollTop -= event.movementY * scrollSpeed;
     }
   }
 
@@ -166,7 +140,7 @@ function PixelMapper() {
   //3rd effect -- DRAW IMAGE TO CANVAS
   useEffect(() => {
     console.log("Effect 3 running...");
-    console.log("Color Palette: ", colorPalette);
+    // console.log("Color Palette: ", colorPalette);
 
     if (!colorPalette || Object.keys(colorPalette).length === 0) {
       return;
@@ -222,7 +196,7 @@ function PixelMapper() {
           return;
         }
         const url = URL.createObjectURL(blob);
-        console.log("URL: ", url);
+        // console.log("URL: ", url);
 
         // Clean up the Blob URL after it's used
         return () => URL.revokeObjectURL(url);
@@ -232,9 +206,20 @@ function PixelMapper() {
     );
   }, [colorPalette, imagePixelData, zoomLevel, gridSettings, boardSize]);
 
+  //adjusting size of main so scrollbars appear on overflow
+  useLayoutEffect(() => {
+    const mainContainer = mainRef.current;
+    const canvasContainer = canvasContainerRef.current;
+    if (mainContainer && canvasContainer) {
+      const { width } = canvasContainer.getBoundingClientRect();
+      mainContainer.style.width = `${width}px`;
+    }
+  }, [zoomLevel]);
+
   return (
     <main
       id={classes.main}
+      ref={mainRef}
       className={`${spacePressed ? classes["space-pressed"] : ""} ${
         isGrabbing ? classes["is-grabbing"] : ""
       }`}
@@ -246,14 +231,22 @@ function PixelMapper() {
     >
       <div
         className={classes["canvas-container"]}
+        ref={canvasContainerRef}
         style={{
-          transform: `scale(${zoomLevel}) translate(${position.x}px, ${position.y}px)`,
+          transformOrigin: "top left",
+          transform: `scale(${zoomLevel})`,
         }}
       >
         <canvas
           ref={canvasRef}
           className={classes.canvas}
-          style={{ background: backgroundSettings.color }}
+          style={
+            backgroundSettings.isVisible
+              ? {
+                  background: backgroundSettings.color,
+                }
+              : undefined
+          }
         />
         {gridSettings.isVisible ? grid : undefined}
       </div>

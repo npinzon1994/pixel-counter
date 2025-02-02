@@ -3,7 +3,7 @@ import classes from "./App.module.css";
 import ColorsList from "./components/ColorsList";
 import ColorsContext from "./context/colors-context";
 import PixelMapper from "./components/PixelMapper";
-import Controls from "./components/Controls";
+import Controls from "./components/Controls/Controls"
 
 function App() {
   const { colorPalette, setImagePixelData } = useContext(ColorsContext);

@@ -1,12 +1,19 @@
 import ColorsContext from "../context/colors-context";
 import KDTree from "../model/kd-tree";
 import classes from "./ColorsList.module.css";
-import { useContext } from "react";
+import { useContext, useState } from "react";
+import { List, ListItem, ListItemButton, Typography } from "@mui/material";
 
 const formatWithComma = (number) => Intl.NumberFormat("en-US").format(number);
 
 const ColorsList = ({ scrapedColors }) => {
-  const { colorPalette, lookupTableValues } = useContext(ColorsContext);
+  const { colorPalette, lookupTableValues, imagePixelData } =
+    useContext(ColorsContext);
+  const [selectedIndex, setSelectedIndex] = useState(null);
+
+  const handleListItemClick = (index) => {
+    setSelectedIndex(index);
+  };
 
   // const colorLookupTree = useMemo(
   //   () => new KDTree(lookupTableValues),
@@ -32,24 +39,45 @@ const ColorsList = ({ scrapedColors }) => {
 
   return (
     <aside className={classes.wrapper}>
-      <div className={classes['bead-counts']}>
-        <p>BEAD COUNT: {formatWithComma(totalPixels)}</p>
-        <p>COLORS: {formatWithComma(filteredColors.length)}</p>
+      <div className={classes["bead-counts"]}>
+        <p>Beads: {formatWithComma(totalPixels)}</p>
+        <p>Colors: {formatWithComma(filteredColors.length)}</p>
+        <p>Size: {`${imagePixelData.width}x${imagePixelData.height}`}</p>
       </div>
-      <ul className={classes.list}>
-        {filteredColors.map((color) => (
-          <li key={color.colorKey}>
-            <div
-              className={classes["color-swatch"]}
-              style={{
+      <List sx={{ overflow: "auto", padding: 0 }}>
+        {filteredColors.map((color, index) => (
+          <ListItem key={index} disablePadding>
+            <ListItemButton
+              selected={selectedIndex === index}
+              onClick={() => handleListItemClick(index)}
+              sx={{
                 background: `rgb(${color.r}, ${color.g}, ${color.b})`,
+                display: "flex",
+                justifyContent: "space-between",
+                gap: "2rem"
               }}
-            />
-            <span>{color.name}</span>
-            <span>{formatWithComma(color.quantity)}</span>
-          </li>
+            >
+              <Typography
+                primary={color.name}
+                sx={{
+                  fontFamily: "Yusei Magic, serif",
+                  textShadow: "0px 0px 5px black",
+                }}
+              >
+                {color.name}
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: "Yusei Magic, serif",
+                  textShadow: "0px 0px 5px black",
+                }}
+              >
+                {formatWithComma(color.quantity)}
+              </Typography>
+            </ListItemButton>
+          </ListItem>
         ))}
-      </ul>
+      </List>
     </aside>
   );
 };

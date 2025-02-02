@@ -3,9 +3,9 @@
   flex-direction: column;
   align-items: center;
   gap: 1rem;
+  padding: 16px;
 }
 
-.container {
-    display: flex;
-    
+.ToggleButton {
+  color: white;
 }
