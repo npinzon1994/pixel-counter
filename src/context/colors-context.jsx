@@ -9,6 +9,8 @@ const ColorsContext = createContext({
   setLookupTableValues: () => {},
   uploadedImage: null,
   setUploadedImage: () => {},
+  scrapedColors: [],
+  setScrapedColors: () => {},
 });
 
 export const ColorsContextProvider = ({ children }) => {
@@ -16,6 +18,7 @@ export const ColorsContextProvider = ({ children }) => {
   const [imagePixelData, updateImagePixelData] = useState({});
   const [lookupTableValues, updateLookupTableValues] = useState([]);
   const [uploadedImage, updateUploadedImage] = useState(null);
+  const [scrapedColors, updateScrapedColors] = useState({});
 
   const setColorPalette = useCallback((colors) => {
     updateColorPalette(colors);
@@ -33,6 +36,10 @@ export const ColorsContextProvider = ({ children }) => {
     updateUploadedImage(file);
   }, []);
 
+  const setScrapedColors = useCallback((colors) => {
+    updateScrapedColors(colors);
+  }, []);
+
   /**
    * useMemo ensures different states can be independently
    * updated without causing unnecessary re-renders to all
@@ -48,6 +55,8 @@ export const ColorsContextProvider = ({ children }) => {
       setLookupTableValues,
       uploadedImage,
       setUploadedImage,
+      scrapedColors,
+      setScrapedColors,
     }),
     [
       colorPalette,
@@ -58,6 +67,8 @@ export const ColorsContextProvider = ({ children }) => {
       setLookupTableValues,
       uploadedImage,
       setUploadedImage,
+      scrapedColors,
+      setScrapedColors,
     ]
   );
 

@@ -1,13 +1,14 @@
-import {useRef, useState} from "react";
+import { useRef, useState } from "react";
 import classes from "./ColorPicker.module.css";
-import { Popover, IconButton } from "@mui/material";
+import { Popover, IconButton, Typography, Box, useTheme } from "@mui/material";
 import SquareIcon from "@mui/icons-material/Square";
 import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
 import { HexColorPicker } from "react-colorful";
 
-const ColorPicker = ({name, isVisible, color, setColor, toggleControl}) => {
+const ColorPicker = ({ name, isVisible, color, setColor, toggleControl }) => {
   const colorPickerButton = useRef(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const theme = useTheme();
 
   const toggleColorPicker = () => {
     setShowColorPicker((prev) => !prev);
@@ -17,9 +18,23 @@ const ColorPicker = ({name, isVisible, color, setColor, toggleControl}) => {
   };
 
   return (
-    <div className={classes[""]}>
-      <p className={classes.name}>{name}</p>
-      <div className={classes.container}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 1,
+        width: "100%",
+      }}
+    >
+      <Typography>{name}</Typography>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 2.5,
+        }}
+      >
         <IconButton
           aria-label={`${name}-color`}
           ref={colorPickerButton}
@@ -53,24 +68,25 @@ const ColorPicker = ({name, isVisible, color, setColor, toggleControl}) => {
             horizontal: "left",
           }}
         >
-          <HexColorPicker
-            color={color}
-            onChange={setColor}
-          />
+          <HexColorPicker color={color} onChange={setColor} />
         </Popover>
         <IconButton
           onClick={toggleControl}
-          style={{ height: 42, width: 42 }}
+          style={{
+            height: 46,
+            width: 46,
+          }}
+          sx={{ borderRadius: 0, border: "1px solid", borderColor: "divider" }}
         >
           <PowerSettingsNewIcon
             sx={{
-              color: `${isVisible ? "limegreen" : "gray"}`,
+              color: `${isVisible ? "#3b68ff" : "gray"}`,
               fontSize: 30,
             }}
           />
         </IconButton>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

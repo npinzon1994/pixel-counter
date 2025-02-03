@@ -1,10 +1,5 @@
-.container {
-    display: flex;
-    gap: 1rem;
-}
-
 .name {
-    margin-block: 1rem;
-    font-size: 0.85rem;
-    user-select: none;
+  margin-block: 1rem;
+  font-size: 0.85rem;
+  user-select: none;
 }

@@ -4,7 +4,7 @@ import UploadIcon from "@mui/icons-material/Upload";
 
 const ImageUploader = ({ onUploadImage }) => {
   return (
-    <div className={classes.container}>
+    <div style={{ width: "100%" }}>
       <input
         type="file"
         id="uploadImage"
@@ -14,7 +14,15 @@ const ImageUploader = ({ onUploadImage }) => {
         style={{ display: "none" }}
       />
       <label htmlFor="uploadImage">
-        <Button variant="contained" component="span" endIcon={<UploadIcon />}>Upload</Button>
+        <Button
+          variant="contained"
+          component="span"
+          endIcon={<UploadIcon />}
+          size="large"
+          fullWidth
+        >
+          Upload
+        </Button>
       </label>
     </div>
   );

@@ -5,13 +5,15 @@ import ImageUploader from "./ImageUploader";
 import { useContext } from "react";
 import Slider from "@mui/material/Slider";
 import ColorPicker from "./ColorPicker";
+import logo from "../../assets/logo.svg";
 import {
-  Select,
-  MenuItem,
+  Switch,
   InputLabel,
   ToggleButton,
   ToggleButtonGroup,
   Grid2,
+  Typography,
+  Box,
 } from "@mui/material";
 
 const Controls = () => {
@@ -21,12 +23,14 @@ const Controls = () => {
     gridSettings,
     zoomLevel,
     boardSize,
+    darkMode,
     setZoomLevel,
     setBackgroundColor,
     setGridColor,
     setBoardSize,
     toggleGrid,
     toggleBackground,
+    toggleDarkMode,
   } = useContext(ControlsContext);
 
   function uploadImageHandler(event) {
@@ -35,7 +39,31 @@ const Controls = () => {
   }
 
   return (
-    <aside id={classes["controls-wrapper"]}>
+    <Box
+      id={classes["controls-wrapper"]}
+      sx={{ borderRight: "1px solid", borderColor: "divider" }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "10rem",
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
+        <img
+          src={logo}
+          style={{
+            width: "100%",
+            maxWidth: "100%",
+            height: "auto",
+            display: "block",
+            objectFit: "contain",
+            userSelect: "none",
+            pointerEvents: "none",
+          }}
+        />
+      </div>
       <ImageUploader onUploadImage={uploadImageHandler} />
       <ColorPicker
         name="Background"
@@ -51,9 +79,19 @@ const Controls = () => {
         setColor={setGridColor}
         toggleControl={toggleGrid}
       />
+      <Box style={{width: "100%", display: "flex", flexDirection: "column"}}>
+        <Typography>Zoom</Typography>
+        <Slider
+          value={zoomLevel}
+          min={1}
+          max={40}
+          step={0.1}
+          onChange={setZoomLevel}
+        />
+      </Box>
 
       <div className={classes["board-size-container"]}>
-        <InputLabel id="board-size" sx={{ color: "white", userSelect: "none" }}>
+        <InputLabel id="board-size" sx={{ userSelect: "none" }}>
           Board Size
         </InputLabel>
         <Grid2 container spacing={2} direction="row" justifyContent="center">
@@ -62,61 +100,52 @@ const Controls = () => {
             exclusive
             onChange={setBoardSize}
             aria-label="boardSize"
-            fullWidth
+            orientation="vertical"
           >
-            <Grid2 item xs={8}>
-              <Grid2 item xs={4}>
-                <ToggleButton value="mini" aria-label="perler mini bead board">
-                  Mini
-                  <br />
-                  28x28
-                </ToggleButton>
-              </Grid2>
-              <Grid2 item xs={4}>
-                <ToggleButton
-                  value="large"
-                  aria-label="perler large bead board"
-                >
-                  Large
-                  <br />
-                  29x29
-                </ToggleButton>
-              </Grid2>
+            <ToggleButton
+              value="mini"
+              aria-label="perler mini bead board"
+              sx={{ borderRadius: 0 }}
+            >
+              Mini
+              <br />
+              28x28
+            </ToggleButton>
 
-              <Grid2 item xs={8}>
-                <Grid2 item xs={4}>
-                  <ToggleButton
-                    value="super-portrait"
-                    aria-label="perler super portrait bead board"
-                  >
-                    Super Portrait
-                    <br />
-                    49x69
-                  </ToggleButton>
-                </Grid2>
-                <Grid2 item xs={4}>
-                  <ToggleButton
-                    value="super-landscape"
-                    aria-label="perler super landscape bead board"
-                  >
-                    Super Landscape
-                    <br />
-                    69x49
-                  </ToggleButton>
-                </Grid2>
-              </Grid2>
-            </Grid2>
+            <ToggleButton
+              value="large"
+              aria-label="perler large bead board"
+              sx={{ borderRadius: 0 }}
+            >
+              Large
+              <br />
+              29x29
+            </ToggleButton>
+
+            <ToggleButton
+              value="super-portrait"
+              aria-label="perler super portrait bead board"
+              sx={{ borderRadius: 0 }}
+            >
+              Super Portrait
+              <br />
+              49x69
+            </ToggleButton>
+
+            <ToggleButton
+              value="super-landscape"
+              aria-label="perler super landscape bead board"
+              sx={{ borderRadius: 0 }}
+            >
+              Super Landscape
+              <br />
+              69x49
+            </ToggleButton>
           </ToggleButtonGroup>
         </Grid2>
       </div>
-      <Slider
-        value={zoomLevel}
-        min={1}
-        max={40}
-        step={0.1}
-        onChange={setZoomLevel}
-      />
-    </aside>
+      <Switch checked={darkMode} onChange={toggleDarkMode} />
+    </Box>
   );
 };
 
