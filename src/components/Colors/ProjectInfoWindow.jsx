@@ -1,12 +1,14 @@
-import { Grid2, Paper, Typography } from "@mui/material";
+import { Grid2, Paper, Typography, useTheme } from "@mui/material";
 import { useContext, useEffect } from "react";
 import ColorsContext from "../../context/colors-context";
 
 const formatWithComma = (number) => Intl.NumberFormat("en-US").format(number);
 
 const ProjectInfoWindow = () => {
+  const theme = useTheme();
   const { colorPalette, imagePixelData } = useContext(ColorsContext);
   const colorPaletteArray = Object.values(colorPalette);
+
   let totalPixels = 0;
   for (const color of colorPaletteArray) {
     totalPixels += +color.a === 0 ? 0 : +color?.quantity;
@@ -40,7 +42,7 @@ const ProjectInfoWindow = () => {
           Beads
         </Typography>
         <Typography
-          sx={{ fontSize: "1.7rem", fontWeight: 700, paddingRight: 1, color: "#7292FF" }}
+          sx={{ fontSize: theme.typography.large, fontWeight: 700, paddingRight: 1, color: theme.palette.primary.semiLight }}
         >
           {formatWithComma(totalPixels)}
         </Typography>
@@ -53,7 +55,7 @@ const ProjectInfoWindow = () => {
         <Typography sx={{ fontSize: "0.75rem", fontWeight: 300 }}>
           Colors
         </Typography>
-        <Typography sx={{ fontSize: "1.7rem", fontWeight: 700, color: "#7292FF" }}>
+        <Typography sx={{ fontSize: theme.typography.large, fontWeight: 700, color: "#7292FF" }}>
           {formatWithComma(colorPaletteArray.length)}
         </Typography>
       </Grid2>

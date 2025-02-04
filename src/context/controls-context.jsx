@@ -5,14 +5,12 @@ const ControlsContext = createContext({
   gridSettings: {},
   backgroundSettings: {},
   boardSize: "",
-  darkMode: null,
   setZoomLevel: () => {},
   toggleGrid: () => {},
   setGridColor: () => {},
   setBackgroundColor: () => {},
   toggleBackground: () => {},
   setBoardSize: () => {},
-  toggleDarkMode: () => {},
 });
 
 export const ControlsContextProvider = ({ children }) => {
@@ -26,7 +24,6 @@ export const ControlsContextProvider = ({ children }) => {
     isVisible: true,
   });
   const [boardSize, updateBoardSize] = useState("mini");
-  const [darkMode, setDarkMode] = useState(true);
 
   const toggleGrid = useCallback(
     () =>
@@ -56,16 +53,16 @@ export const ControlsContextProvider = ({ children }) => {
   }, []);
 
   const setBoardSize = useCallback((event) => {
-    updateBoardSize(event.target.value);
+    console.log("Board Size: ", event.target.value);
+    if (event.target.value !== null) {
+      updateBoardSize(event.target.value);
+    }
   }, []);
 
   const setZoomLevel = useCallback((event) => {
     updateZoomLevel(+event.target.value);
   }, []);
 
-  const toggleDarkMode = useCallback(() => {
-    setDarkMode((prev) => !prev);
-  }, []);
 
   const contextValue = useMemo(() => {
     return {
@@ -73,28 +70,24 @@ export const ControlsContextProvider = ({ children }) => {
       gridSettings,
       backgroundSettings,
       boardSize,
-      darkMode,
       setZoomLevel,
       setGridColor,
       toggleGrid,
       setBackgroundColor,
       toggleBackground,
       setBoardSize,
-      toggleDarkMode,
     };
   }, [
     zoomLevel,
     gridSettings,
     backgroundSettings,
     boardSize,
-    darkMode,
     setZoomLevel,
     setBackgroundColor,
     setBoardSize,
     setGridColor,
     toggleBackground,
     toggleGrid,
-    toggleDarkMode,
   ]);
 
   return (

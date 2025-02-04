@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import classes from "./App.module.css";
 import ColorsContext from "./context/colors-context";
 import PixelMapper from "./components/PixelMapper";
@@ -10,18 +10,21 @@ import {
   CssBaseline,
   GlobalStyles,
 } from "@mui/material";
-import ControlsContext from "./context/controls-context";
 
 function App() {
   const { setImagePixelData, scrapedColors, setScrapedColors } =
     useContext(ColorsContext);
-  const { darkMode } = useContext(ControlsContext);
+  const [darkMode, setDarkMode] = useState(true);
 
   const theme = createTheme({
     palette: {
       mode: darkMode ? "dark" : "light",
+      toggleDarkMode: (event) => setDarkMode(event.target.value),
       primary: {
-        main: "rgb(59, 104, 255)", //main shade of primary color
+        light: "#B1C2FF",
+        semiLight: "#7292ff",
+        main: "#3b68ff", //main shade of primary color
+        dark: "#132254",
         translucent: "rgba(59, 104, 255, 0.7)",
       },
       background: {
@@ -30,10 +33,22 @@ function App() {
       },
       text: {
         primary: darkMode ? "#ffffff" : "#000000",
+        bigNumber: darkMode ? "#7292ff" : "#3b68ff",
+        heading: darkMode ? "#CCD7FF" : "#132254",
+        smallText: darkMode ? "#C6CADC" : "#6D7388",
       },
     },
     typography: {
       fontFamily: "Nunito Sans, serif",
+      large: {
+        fontSize: "1.7rem",
+      },
+      medium: {
+        fontSize: "1rem",
+      },
+      small: {
+        fontSize: "0.75rem",
+      }
     },
     components: {
       MuiButton: {
