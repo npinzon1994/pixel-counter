@@ -7,13 +7,14 @@ import { List, ListItem, ListItemButton, Typography } from "@mui/material";
 const formatWithComma = (number) => Intl.NumberFormat("en-US").format(number);
 
 const ColorsList = () => {
-  const { colorPalette, lookupTableValues, imagePixelData, scrapedColors } =
-    useContext(ColorsContext);
+  const {
+    colorPalette,
+    lookupTableValues,
+    imagePixelData,
+    scrapedColors,
+    setHighlightedColor,
+  } = useContext(ColorsContext);
   const [selectedIndex, setSelectedIndex] = useState(null);
-
-  const handleListItemClick = (index) => {
-    setSelectedIndex(index);
-  };
 
   // const colorLookupTree = useMemo(
   //   () => new KDTree(lookupTableValues),
@@ -22,6 +23,7 @@ const ColorsList = () => {
 
   const colorPaletteArray = Object.values(colorPalette);
   const outputColors = [];
+  const pixelArray_focusedColor = [];
 
   for (let i = 0; i < colorPaletteArray.length; i++) {
     const color = { ...colorPaletteArray[i] };
@@ -34,6 +36,9 @@ const ColorsList = () => {
   }
 
   const filteredColors = outputColors.filter((color) => color.a !== 0);
+  const handleListItemClick = (index) => {
+    setSelectedIndex((prev) => (index === prev ? null : index));
+  };
 
   const getContrastingTextColor = (r, g, b) => {
     // Calculate luminance using relative luminance formula
@@ -47,7 +52,15 @@ const ColorsList = () => {
         <ListItem key={index} disablePadding>
           <ListItemButton
             selected={selectedIndex === index}
-            onClick={() => handleListItemClick(index)}
+            onClick={() => {
+              handleListItemClick(index);
+              setHighlightedColor(color);
+            }}
+            tabIndex={0}
+            onBlur={() => {
+              handleListItemClick(null);
+              setHighlightedColor(null);
+            }}
             sx={{
               background: `rgba(${color.r}, ${color.g}, ${color.b}, 0.85)`,
               display: "flex",
@@ -59,6 +72,12 @@ const ColorsList = () => {
 
               "&:hover": {
                 background: `rgba(${color.r}, ${color.g}, ${color.b}, 0.65)`,
+              },
+              "&.Mui-selected": {
+                background: `rgba(${color.r}, ${color.g}, ${color.b}, 1)`,
+                "&:hover": {
+                  background: `rgba(${color.r}, ${color.g}, ${color.b}, 0.9)`,
+                },
               },
             }}
           >

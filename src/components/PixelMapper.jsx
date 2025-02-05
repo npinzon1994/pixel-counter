@@ -24,6 +24,7 @@ function PixelMapper() {
     uploadedImage,
     lookupTableValues,
     setLookupTableValues,
+    highlightedColor,
   } = useContext(ColorsContext);
 
   const { backgroundSettings, gridSettings, boardSize, zoomLevel } =
@@ -179,10 +180,28 @@ function PixelMapper() {
     const pixelData = new Uint8ClampedArray(width * height * 4);
 
     for (let i = 0; i < pixels.length; i += 4) {
-      pixelData[i] = pixels[i];
-      pixelData[i + 1] = pixels[i + 1];
-      pixelData[i + 2] = pixels[i + 2];
-      pixelData[i + 3] = pixels[i + 3];
+      const r = pixels[i];
+      const g = pixels[i + 1];
+      const b = pixels[i + 2];
+      const a = pixels[i + 3];
+
+      pixelData[i] = r;
+      pixelData[i + 1] = g;
+      pixelData[i + 2] = b;
+
+      if (highlightedColor) {
+        if (
+          r !== highlightedColor.r ||
+          g !== highlightedColor.g ||
+          b !== highlightedColor.b
+        ) {
+          pixelData[i + 3] = 20;
+        } else {
+          pixelData[i + 3] = 255;
+        }
+      } else {
+        pixelData[i + 3] = a;
+      }
     }
 
     const imageData = new ImageData(pixelData, width, height);
@@ -204,7 +223,14 @@ function PixelMapper() {
       "image/png",
       1.0 // Quality parameter for PNG
     );
-  }, [colorPalette, imagePixelData, zoomLevel, gridSettings, boardSize]);
+  }, [
+    colorPalette,
+    imagePixelData,
+    zoomLevel,
+    gridSettings,
+    boardSize,
+    highlightedColor,
+  ]);
 
   //adjusting size of main so scrollbars appear on overflow
   useLayoutEffect(() => {

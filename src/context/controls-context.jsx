@@ -17,7 +17,7 @@ export const ControlsContextProvider = ({ children }) => {
   const [zoomLevel, setZoomLevel] = useState(4);
   const [gridSettings, updateGridSettings] = useState({
     color: "#7c7b7b",
-    isVisible: false,
+    isVisible: true,
   });
   const [backgroundSettings, updateBackgroundSettings] = useState({
     color: "#000000",

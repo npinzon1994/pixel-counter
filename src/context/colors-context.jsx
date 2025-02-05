@@ -11,6 +11,8 @@ const ColorsContext = createContext({
   setUploadedImage: () => {},
   scrapedColors: [],
   setScrapedColors: () => {},
+  highlightedPixels: {},
+  setHighlightedPixels: () => {},
 });
 
 export const ColorsContextProvider = ({ children }) => {
@@ -19,6 +21,7 @@ export const ColorsContextProvider = ({ children }) => {
   const [lookupTableValues, updateLookupTableValues] = useState([]);
   const [uploadedImage, updateUploadedImage] = useState(null);
   const [scrapedColors, updateScrapedColors] = useState({});
+  const [highlightedColor, setHighlightedColor] = useState({});
 
   const setColorPalette = useCallback((colors) => {
     updateColorPalette(colors);
@@ -57,6 +60,8 @@ export const ColorsContextProvider = ({ children }) => {
       setUploadedImage,
       scrapedColors,
       setScrapedColors,
+      highlightedColor,
+      setHighlightedColor,
     }),
     [
       colorPalette,
@@ -69,6 +74,8 @@ export const ColorsContextProvider = ({ children }) => {
       setUploadedImage,
       scrapedColors,
       setScrapedColors,
+      highlightedColor,
+      setHighlightedColor,
     ]
   );
 
