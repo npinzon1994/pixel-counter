@@ -2,14 +2,7 @@ import ColorsContext from "../../context/colors-context";
 import KDTree from "../../model/kd-tree";
 import classes from "./ColorsList.module.css";
 import { useContext, useState } from "react";
-import {
-  List,
-  ListItem,
-  ListItemButton,
-  Typography,
-  Grid2,
-  Paper,
-} from "@mui/material";
+import { List, ListItem, ListItemButton, Typography } from "@mui/material";
 
 const formatWithComma = (number) => Intl.NumberFormat("en-US").format(number);
 
@@ -42,6 +35,12 @@ const ColorsList = () => {
 
   const filteredColors = outputColors.filter((color) => color.a !== 0);
 
+  const getContrastingTextColor = (r, g, b) => {
+    // Calculate luminance using relative luminance formula
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.5 ? "#000000" : "#ffffff"; // Use black text if background is light
+  };
+
   return (
     <List sx={{ overflow: "auto", padding: 0, maxHeight: "100vh" }}>
       {filteredColors.map((color, index) => (
@@ -50,25 +49,34 @@ const ColorsList = () => {
             selected={selectedIndex === index}
             onClick={() => handleListItemClick(index)}
             sx={{
-              background: `rgb(${color.r}, ${color.g}, ${color.b})`,
+              background: `rgba(${color.r}, ${color.g}, ${color.b}, 0.85)`,
               display: "flex",
               justifyContent: "space-between",
               gap: "2rem",
+              paddingBlock: 2,
+              opacity:
+                selectedIndex !== null && selectedIndex !== index ? 0.35 : 1,
+
+              "&:hover": {
+                background: `rgba(${color.r}, ${color.g}, ${color.b}, 0.65)`,
+              },
             }}
           >
             <Typography
               primary={color.name}
               sx={{
-                textShadow: "0px 0px 5px black",
-                color: "#ffffff",
+                color: getContrastingTextColor(color.r, color.g, color.b),
+                fontSize: "0.9rem",
+                fontWeight: 700,
               }}
             >
               {color.name}
             </Typography>
             <Typography
               sx={{
-                textShadow: "0px 0px 5px black",
-                color: "#ffffff",
+                color: getContrastingTextColor(color.r, color.g, color.b),
+                fontSize: "0.9rem",
+                fontWeight: 700,
               }}
             >
               {formatWithComma(color.quantity)}

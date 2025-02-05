@@ -77,26 +77,26 @@ const ColorPicker = ({ name, isVisible, color, setColor, toggleControl }) => {
             vertical: "top",
             horizontal: "left",
           }}
+          slotProps={{
+            paper: {
+              sx: {
+                borderRadius: "0px", // Remove rounding from the popover container
+                padding: "18px",
+                background: "transparent",
+                
+              },
+            },
+          }}
         >
-          <HexColorPicker color={color} onChange={setColor} />
+          <div style={{ borderRadius: "0px" }}>
+            <HexColorPicker color={color} onChange={setColor} />
+          </div>
         </Popover>
         <IconButton
           onClick={toggleControl}
           style={{
             height: 40,
             width: 40,
-            boxShadow:
-              "inset 2px 2px 6px rgba(255, 255, 255, 0.1), inset -2px -2px 6px rgba(0, 0, 0, 0.7)", // Soft highlights and inner shadows
-            transition: "all 0.2s ease-in-out",
-            "&:hover": {
-              boxShadow:
-                "inset 3px 3px 8px rgba(255, 255, 255, 0.15), inset -3px -3px 8px rgba(0, 0, 0, 0.8)", // Slight glow effect on hover
-            },
-            "&:active": {
-              boxShadow:
-                "inset 5px 5px 10px rgba(255, 255, 255, 0.2), inset -5px -5px 10px rgba(0, 0, 0, 0.9)", // More pronounced inner glow
-              background: "#202020", // Slightly lighter pressed effect
-            },
           }}
           sx={{ border: "1px solid", borderColor: "divider" }}
         >

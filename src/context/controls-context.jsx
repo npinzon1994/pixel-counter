@@ -14,7 +14,7 @@ const ControlsContext = createContext({
 });
 
 export const ControlsContextProvider = ({ children }) => {
-  const [zoomLevel, updateZoomLevel] = useState(4);
+  const [zoomLevel, setZoomLevel] = useState(4);
   const [gridSettings, updateGridSettings] = useState({
     color: "#7c7b7b",
     isVisible: false,
@@ -23,7 +23,7 @@ export const ControlsContextProvider = ({ children }) => {
     color: "#000000",
     isVisible: true,
   });
-  const [boardSize, updateBoardSize] = useState("mini");
+  const [boardSize, setBoardSize] = useState("mini");
 
   const toggleGrid = useCallback(
     () =>
@@ -51,18 +51,6 @@ export const ControlsContextProvider = ({ children }) => {
       return { ...prev, color };
     });
   }, []);
-
-  const setBoardSize = useCallback((event) => {
-    console.log("Board Size: ", event.target.value);
-    if (event.target.value !== null) {
-      updateBoardSize(event.target.value);
-    }
-  }, []);
-
-  const setZoomLevel = useCallback((event) => {
-    updateZoomLevel(+event.target.value);
-  }, []);
-
 
   const contextValue = useMemo(() => {
     return {

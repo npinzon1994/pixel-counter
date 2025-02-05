@@ -19,7 +19,8 @@ function App() {
   const theme = createTheme({
     palette: {
       mode: darkMode ? "dark" : "light",
-      toggleDarkMode: (event) => setDarkMode(event.target.value),
+      toggleDarkMode: setDarkMode,
+      darkModeState: darkMode,
       primary: {
         light: "#B1C2FF",
         semiLight: "#7292ff",

@@ -29,7 +29,7 @@ export function setHorizontalLines(width, height, board, color) {
   const gridLines = [];
   for (let i = 0; i <= height; i++) {
     const atEdge = i % board.height === 0;
-    const strokeWidth = atEdge ? 0.45 : 0.15;
+    const strokeWidth = atEdge ? 0.4 : 0.1;
     const line = (
       <line
         key={`h-${i}`}
@@ -50,7 +50,7 @@ export function setVerticalLines(width, height, board, color) {
   const gridLines = [];
   for (let i = 0; i <= width; i++) {
     const atEdge = i % board.width === 0;
-    const strokeWidth = atEdge ? 0.45 : 0.15;
+    const strokeWidth = atEdge ? 0.25 : 0.05;
     const line = (
       <line
         key={`v-${i}`}

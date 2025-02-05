@@ -3,3 +3,8 @@
   font-size: 0.85rem;
   user-select: none;
 }
+
+.color-picker {
+  border-radius: 0px;
+  overflow: hidden;
+}
