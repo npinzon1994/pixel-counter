@@ -22,8 +22,6 @@ function PixelMapper() {
     imagePixelData,
     setImagePixelData,
     uploadedImage,
-    lookupTableValues,
-    setLookupTableValues,
     highlightedColor,
   } = useContext(ColorsContext);
 
@@ -188,21 +186,22 @@ function PixelMapper() {
       pixelData[i] = r;
       pixelData[i + 1] = g;
       pixelData[i + 2] = b;
+      pixelData[i + 3] = a;
 
-      if (highlightedColor) {
-        if (
-          r !== highlightedColor.r ||
-          g !== highlightedColor.g ||
-          b !== highlightedColor.b
-        ) {
-          pixelData[i + 3] = 20;
-        } else {
-          pixelData[i + 3] = 255;
-        }
-      } else {
-        pixelData[i + 3] = a;
+      if (!highlightedColor) {
+        continue;
+      }
+
+      if (
+        r !== highlightedColor.r ||
+        g !== highlightedColor.g ||
+        b !== highlightedColor.b
+      ) {
+        pixelData[i + 3] = 0;
       }
     }
+
+    console.log("PIXEL DATA: ", pixelData);
 
     const imageData = new ImageData(pixelData, width, height);
     context.putImageData(imageData, 0, 0);
@@ -254,6 +253,13 @@ function PixelMapper() {
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
       onMouseMove={handleMouseMove}
+      style={
+        backgroundSettings.isVisible
+          ? {
+              background: backgroundSettings.color,
+            }
+          : undefined
+      }
     >
       <div
         className={classes["canvas-container"]}
@@ -263,17 +269,7 @@ function PixelMapper() {
           transform: `scale(${zoomLevel})`,
         }}
       >
-        <canvas
-          ref={canvasRef}
-          className={classes.canvas}
-          style={
-            backgroundSettings.isVisible
-              ? {
-                  background: backgroundSettings.color,
-                }
-              : undefined
-          }
-        />
+        <canvas ref={canvasRef} className={classes.canvas} />
         {gridSettings.isVisible ? grid : undefined}
       </div>
     </main>

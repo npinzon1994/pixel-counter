@@ -56,7 +56,7 @@ const ProjectInfoWindow = () => {
           Colors
         </Typography>
         <Typography sx={{ fontSize: theme.typography.large, fontWeight: 700, color: "#7292FF" }}>
-          {formatWithComma(colorPaletteArray.length)}
+          {formatWithComma(colorPaletteArray.length-1)}
         </Typography>
       </Grid2>
       <Grid2

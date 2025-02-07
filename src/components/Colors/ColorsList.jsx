@@ -1,19 +1,12 @@
 import ColorsContext from "../../context/colors-context";
-import KDTree from "../../model/kd-tree";
-import classes from "./ColorsList.module.css";
 import { useContext, useState } from "react";
 import { List, ListItem, ListItemButton, Typography } from "@mui/material";
 
 const formatWithComma = (number) => Intl.NumberFormat("en-US").format(number);
 
 const ColorsList = () => {
-  const {
-    colorPalette,
-    lookupTableValues,
-    imagePixelData,
-    scrapedColors,
-    setHighlightedColor,
-  } = useContext(ColorsContext);
+  const { colorPalette, scrapedColors, setHighlightedColor } =
+    useContext(ColorsContext);
   const [selectedIndex, setSelectedIndex] = useState(null);
 
   // const colorLookupTree = useMemo(
@@ -23,11 +16,10 @@ const ColorsList = () => {
 
   const colorPaletteArray = Object.values(colorPalette);
   const outputColors = [];
-  const pixelArray_focusedColor = [];
 
   for (let i = 0; i < colorPaletteArray.length; i++) {
     const color = { ...colorPaletteArray[i] };
-    const { r, g, b, a } = color;
+    const { r, g, b } = color;
     const colorKey = `R${r}G${g}B${b}`;
     const name = colorKey in scrapedColors ? scrapedColors[colorKey] : colorKey;
     color.colorKey = colorKey;
@@ -54,7 +46,12 @@ const ColorsList = () => {
             selected={selectedIndex === index}
             onClick={() => {
               handleListItemClick(index);
-              setHighlightedColor(color);
+              setHighlightedColor((prev) => {
+                if (!prev) {
+                  return color;
+                }
+                return prev.colorKey === color.colorKey ? null : color;
+              });
             }}
             tabIndex={0}
             onBlur={() => {
