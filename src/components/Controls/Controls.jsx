@@ -218,7 +218,7 @@ const Controls = () => {
               "&.Mui-selected .MuiTypography-root": {
                 color: selectedTextColor,
               },
-              "&.Mui-selected .MuiTypography-root:first-child": {
+              "&.Mui-selected .MuiTypography-root:first-of-type": {
                 fontWeight: 700,
               },
             }}
@@ -334,7 +334,7 @@ const Controls = () => {
               "&.Mui-selected .MuiTypography-root": {
                 color: selectedTextColor,
               },
-              "&.Mui-selected .MuiTypography-root:first-child": {
+              "&.Mui-selected .MuiTypography-root:first-of-type": {
                 fontWeight: 700,
               },
             }}
@@ -449,7 +449,7 @@ const Controls = () => {
               "&.Mui-selected .MuiTypography-root": {
                 color: selectedTextColor,
               },
-              "&.Mui-selected .MuiTypography-root:first-child": {
+              "&.Mui-selected .MuiTypography-root:first-of-type": {
                 fontWeight: 700,
               },
             }}
@@ -581,7 +581,7 @@ const Controls = () => {
               "&.Mui-selected .MuiTypography-root": {
                 color: selectedTextColor,
               },
-              "&.Mui-selected .MuiTypography-root:first-child": {
+              "&.Mui-selected .MuiTypography-root:first-of-type": {
                 fontWeight: 700,
               },
             }}

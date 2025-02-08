@@ -124,12 +124,14 @@ function PixelMapper() {
       const g = pixels[i + 1];
       const b = pixels[i + 2];
       const a = pixels[i + 3];
-      const colorKey = `R${r}G${g}B${b}A${a}`;
-
-      if (!colors[colorKey]) {
-        colors[colorKey] = { colorKey, r, g, b, a, quantity: 1 };
-      } else {
-        colors[colorKey].quantity++;
+      if (a === 0 || a === 255) {
+        const colorKey = `R${r}G${g}B${b}A${a}`;
+        if (!colors[colorKey]) {
+          console.log("NEW COLOR! -- ", colorKey);
+          colors[colorKey] = { colorKey, r, g, b, a, quantity: 1 };
+        } else {
+          colors[colorKey].quantity++;
+        }
       }
     }
     console.log("Setting color palette...");

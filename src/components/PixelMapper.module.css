@@ -3,10 +3,7 @@
   height: 100vh;
   width: 100%;
   flex: 1;
-  /* border-left: solid rgba(82, 82, 82, 0.5) 1px;
-  border-right: solid rgb(82, 82, 82, 0.5) 1px; */
   overflow: auto;
-  /* background: #242424; */
 }
 
 .canvas-container {

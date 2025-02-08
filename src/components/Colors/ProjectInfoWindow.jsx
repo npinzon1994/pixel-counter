@@ -29,7 +29,7 @@ const ProjectInfoWindow = () => {
       }}
     >
       <Grid2
-        item
+        item="true"
         xs={6}
         sx={{
           padding: 1,
@@ -48,7 +48,7 @@ const ProjectInfoWindow = () => {
         </Typography>
       </Grid2>
       <Grid2
-        item
+        item="true"
         xs={6}
         sx={{ padding: 1, borderBottom: "1px solid", borderColor: "divider" }}
       >
@@ -60,7 +60,7 @@ const ProjectInfoWindow = () => {
         </Typography>
       </Grid2>
       <Grid2
-        item
+        item="true"
         xs={12}
         sx={{ paddingTop: 1, paddingInline: 0.25 }}
       >
