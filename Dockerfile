@@ -11,8 +11,12 @@ RUN npm install
 # Copy the rest of the app
 COPY . .
 
+RUN npm run build
+
+ENV PORT=${PORT:-5173}
+
 # Expose the default React development port
-EXPOSE 5173
+EXPOSE ${PORT}
 
 # Start the React dev server
-CMD ["npm", "run", "dev"]
+CMD ["npx", "serve", "dist", "--port", "5173"]
