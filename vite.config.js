@@ -9,6 +9,9 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: "./src/test/setup.js",
   },
+  build: {
+    outDir: "dist",
+  },
   server: {
     host: "0.0.0.0",
     proxy: {
