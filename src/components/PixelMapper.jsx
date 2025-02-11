@@ -147,6 +147,10 @@ function PixelMapper() {
       return;
     }
 
+    if(!imagePixelData.pixels) {
+      return;
+    }
+
     const { width, height, pixels } = imagePixelData;
 
     const gridLines = generateGrid(
@@ -168,12 +172,13 @@ function PixelMapper() {
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
 
-    context.clearRect(0, 0, canvas.width, canvas.height); //clearing prev img
-    context.setTransform(1, 0, 0, 1, 0, 0); //reset transformation
-
     //Account for Zoom Level
     canvas.width = width;
     canvas.height = height;
+
+    context.clearRect(0, 0, canvas.width, canvas.height); //clearing prev img
+    // context.setTransform(1, 0, 0, 1, 0, 0); //reset transformation
+
     // context.scale(zoomLevel, zoomLevel);
 
     //gather data and draw image

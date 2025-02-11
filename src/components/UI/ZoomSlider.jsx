@@ -26,11 +26,11 @@ const ZoomSlider = () => {
   }
 
   function incrementZoom() {
-    setZoomLevel((prev) => (prev += 0.05));
+    setZoomLevel((prev) => Math.max(1, Math.min(40, prev + 0.1)));
   }
 
   function decrementZoom() {
-    setZoomLevel((prev) => (prev -= 0.05));
+    setZoomLevel((prev) => Math.max(1, Math.min(40, prev - 0.1)));
   }
 
   return (
@@ -47,7 +47,7 @@ const ZoomSlider = () => {
       <Box id="step-counter" sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 0.75 }}>
         <IconButton
           onClick={decrementZoom}
-          onPointerDown={() => startZooming(-0.2)}
+          onPointerDown={() => startZooming(-0.1)}
           onPointerUp={stopZooming}
           onPointerLeave={stopZooming}
           sx={{ padding: 0 }}
@@ -57,7 +57,7 @@ const ZoomSlider = () => {
         <Typography sx={{ fontSize: "0.65rem" }}>{zoomPercentage}</Typography>
         <IconButton
           onClick={incrementZoom}
-          onPointerDown={() => startZooming(0.2)}
+          onPointerDown={() => startZooming(0.1)}
           onPointerUp={stopZooming}
           onPointerLeave={stopZooming}
           sx={{ padding: 0 }}
