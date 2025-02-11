@@ -65,13 +65,13 @@ function App() {
 
   //scraping colors on first load
   useEffect(() => {
-    fetch("http://localhost:5000/api/colors")
+    fetch("https://rgb-color-matcher-and-web-scraper.onrender.com/api/colors")
       .then((response) => response.json())
       .then((data) => setScrapedColors(data))
       .catch((error) => console.error("Error fetching colors:", error));
 
     //grabbing default image
-    fetch("http://localhost:5000/api/default-image")
+    fetch("https://rgb-color-matcher-and-web-scraper.onrender.com/api/default-image")
       .then((response) => response.json())
       .then((data) => setImagePixelData(data))
       .catch((error) => console.error("Error fetching colors:", error));
