@@ -1,5 +1,5 @@
 # Use Node.js image
-FROM node:18-alpine
+FROM node:18
 
 # Set working directory
 WORKDIR /app
@@ -13,10 +13,13 @@ COPY . .
 
 RUN npm run build
 
-ENV PORT=${PORT:-5173}
+# Install a static file server (like serve)
+RUN npm install -g serve
+
+ENV PORT=5173
 
 # Expose the default React development port
 EXPOSE ${PORT}
 
 # Start the React dev server
-CMD ["npx", "serve", "dist", "--port", "5173"]
+CMD ["serve", "-s", "dist"]
