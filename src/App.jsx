@@ -74,7 +74,7 @@ function App() {
   useEffect(() => {
     console.log("Selected Brands: ", selectedBrands);
     console.log("Selected Size: ", beadSize);
-    fetch("http://localhost:5000/api/get-color-table", {
+    fetch("https://rgb-color-matcher-and-web-scraper.onrender.com/api/get-color-table", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({selectedBrands, beadSize}),
@@ -90,7 +90,7 @@ function App() {
 
   //fetching default image on first load
   useEffect(() => {
-    fetch("http://localhost:5000/api/default-image")
+    fetch("https://rgb-color-matcher-and-web-scraper.onrender.com/api/default-image")
       .then((response) => {
         console.log("[React] Response Received (Default Image Pixel Data)");
         return response.json();

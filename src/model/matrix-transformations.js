@@ -116,7 +116,10 @@ function transformationFunction_XYZtoLAB(t, delta = 6 / 29) {
   return t > delta ** 3 ? Math.cbrt(t) : t / (3 * delta ** 2) + 4 / 29;
 }
 
-export function XYZtoLab(xyzPixel, whitePoint = { X: 95.0489, Y: 100.0, Z: 108.884 }) {
+export function XYZtoLab(
+  xyzPixel,
+  whitePoint = { X: 95.0489, Y: 100.0, Z: 108.884 }
+) {
   const { x, y, z } = xyzPixel;
 
   //D65 reference white point
@@ -142,7 +145,10 @@ export function XYZtoLab(xyzPixel, whitePoint = { X: 95.0489, Y: 100.0, Z: 108.8
   return { L, a, b };
 }
 
-export function LabToXYZ(labPixel, whitePoint = { X: 95.047, Y: 100.0, Z: 108.883 }) {
+export function LabToXYZ(
+  labPixel,
+  whitePoint = { X: 95.047, Y: 100.0, Z: 108.883 }
+) {
   const L = labPixel[0];
   const a = labPixel[1];
   const b = labPixel[2];
@@ -195,11 +201,15 @@ export function XYZtoRGB(xyzPixel) {
   const g = Math.min(Math.max(gammaCorrect(gLinear), 0), 1);
   const b = Math.min(Math.max(gammaCorrect(bLinear), 0), 1);
 
+  const r_rounded = Math.round(r * 255);
+  const g_rounded = Math.round(g * 255);
+  const b_rounded = Math.round(b * 255);
+
   // Scale to 8-bit RGB range [0, 255]
   return {
-    r: Math.round(r * 255),
-    g: Math.round(g * 255),
-    b: Math.round(b * 255),
+    r: r_rounded,
+    g: g_rounded,
+    b: b_rounded,
   };
 }
 
@@ -210,7 +220,11 @@ export function processImage(pixels, scrapedColors) {
   );
 
   //using this table because of new scrapedColors structure
-  const table = Object.values(scrapedColors).flatMap((color) => [color.r, color.g, color.b]);
+  const table = Object.values(scrapedColors).flatMap((color) => [
+    color.r,
+    color.g,
+    color.b,
+  ]);
 
   //convert and transform
   const colorsMatrix_RGBA = toMatrix(colors);

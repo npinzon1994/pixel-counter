@@ -100,7 +100,10 @@ function PixelMapper() {
     const formData = new FormData();
     formData.append("image", uploadedImage);
 
-    fetch("https://rgb-color-matcher-and-web-scraper.onrender.com/api/upload-image", { method: "POST", body: formData })
+    fetch("https://rgb-color-matcher-and-web-scraper.onrender.com/api/upload-image", {
+      method: "POST",
+      body: formData,
+    })
       .then((res) => res.json())
       .then((data) => {
         console.log("Setting image pixel data...");
@@ -147,7 +150,7 @@ function PixelMapper() {
       return;
     }
 
-    if(!imagePixelData.updatedPixels) {
+    if (!imagePixelData.updatedPixels) {
       return;
     }
 
