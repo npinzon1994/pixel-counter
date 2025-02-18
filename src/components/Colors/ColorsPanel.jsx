@@ -4,6 +4,7 @@ import { useContext } from "react";
 import ColorsContext from "../../context/colors-context";
 import ProjectInfoWindow from "./ProjectInfoWindow";
 import { Box } from "@mui/material";
+import BeadFilter from "./BeadFilter";
 
 const ColorsPanel = () => {
   const { colorPalette } = useContext(ColorsContext);
@@ -15,6 +16,7 @@ const ColorsPanel = () => {
       sx={{ borderLeft: "1px solid", borderColor: "divider" }}
     >
       <ProjectInfoWindow />
+      <BeadFilter />
       {colorsNotEmpty ? <ColorsList /> : <p>No image selected</p>}
     </Box>
   );

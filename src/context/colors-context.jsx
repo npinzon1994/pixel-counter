@@ -9,10 +9,14 @@ const ColorsContext = createContext({
   setLookupTableValues: () => {},
   uploadedImage: null,
   setUploadedImage: () => {},
-  scrapedColors: [],
+  scrapedColors: {},
   setScrapedColors: () => {},
   highlightedColor: {},
   setHighlightedColor: () => {},
+  selectedBrands: {},
+  setSelectedBrands: () => {},
+  beadSize: "",
+  setBeadSize: () => {},
 });
 
 export const ColorsContextProvider = ({ children }) => {
@@ -22,26 +26,41 @@ export const ColorsContextProvider = ({ children }) => {
   const [uploadedImage, updateUploadedImage] = useState(null);
   const [scrapedColors, updateScrapedColors] = useState({});
   const [highlightedColor, setHighlightedColor] = useState(null);
+  const [selectedBrands, updateSelectedBrands] = useState({
+    perler: true,
+    artkal: true,
+    top_tier: true,
+  });
+  const [beadSize, updateBeadSize] = useState("midi");
 
-  const setColorPalette = useCallback((colors) => {
-    updateColorPalette(colors);
-  }, []);
+  const setColorPalette = useCallback(
+    (colors) => updateColorPalette(colors),
+    []
+  );
 
-  const setImagePixelData = useCallback((data) => {
-    updateImagePixelData(data);
-  }, []);
+  const setImagePixelData = useCallback(
+    (data) => updateImagePixelData(data),
+    []
+  );
 
-  const setLookupTableValues = useCallback((values) => {
-    updateLookupTableValues(values);
-  }, []);
+  const setLookupTableValues = useCallback(
+    (values) => updateLookupTableValues(values),
+    []
+  );
 
-  const setUploadedImage = useCallback((file) => {
-    updateUploadedImage(file);
-  }, []);
+  const setUploadedImage = useCallback((file) => updateUploadedImage(file), []);
 
-  const setScrapedColors = useCallback((colors) => {
-    updateScrapedColors(colors);
-  }, []);
+  const setScrapedColors = useCallback(
+    (colors) => updateScrapedColors(colors),
+    []
+  );
+
+  const setSelectedBrands = useCallback(
+    (brands) => updateSelectedBrands(brands),
+    []
+  );
+
+  const setBeadSize = useCallback((size) => updateBeadSize(size), []);
 
   /**
    * useMemo ensures different states can be independently
@@ -62,6 +81,10 @@ export const ColorsContextProvider = ({ children }) => {
       setScrapedColors,
       highlightedColor,
       setHighlightedColor,
+      selectedBrands,
+      setSelectedBrands,
+      beadSize,
+      setBeadSize,
     }),
     [
       colorPalette,
@@ -76,6 +99,10 @@ export const ColorsContextProvider = ({ children }) => {
       setScrapedColors,
       highlightedColor,
       setHighlightedColor,
+      selectedBrands,
+      setSelectedBrands,
+      beadSize,
+      setBeadSize,
     ]
   );
 

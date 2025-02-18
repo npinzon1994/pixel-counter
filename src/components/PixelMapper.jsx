@@ -112,18 +112,18 @@ function PixelMapper() {
 
   //2nd effect -- IMAGE PROCESSING
   useEffect(() => {
-    if (!imagePixelData.pixels) {
+    if (!imagePixelData.updatedPixels) {
       return;
     }
     console.log("Image pixel data changed!");
     const colors = {};
-    const { pixels } = imagePixelData;
+    const { updatedPixels } = imagePixelData;
 
-    for (let i = 0; i < pixels.length; i += 4) {
-      const r = pixels[i];
-      const g = pixels[i + 1];
-      const b = pixels[i + 2];
-      const a = pixels[i + 3];
+    for (let i = 0; i < updatedPixels.length; i += 4) {
+      const r = updatedPixels[i];
+      const g = updatedPixels[i + 1];
+      const b = updatedPixels[i + 2];
+      const a = updatedPixels[i + 3];
       if (a === 0 || a === 255) {
         const colorKey = `R${r}G${g}B${b}A${a}`;
         if (!colors[colorKey]) {
@@ -147,11 +147,11 @@ function PixelMapper() {
       return;
     }
 
-    if(!imagePixelData.pixels) {
+    if(!imagePixelData.updatedPixels) {
       return;
     }
 
-    const { width, height, pixels } = imagePixelData;
+    const { width, height, updatedPixels } = imagePixelData;
 
     const gridLines = generateGrid(
       width,
@@ -184,11 +184,11 @@ function PixelMapper() {
     //gather data and draw image
     const pixelData = new Uint8ClampedArray(width * height * 4);
 
-    for (let i = 0; i < pixels.length; i += 4) {
-      const r = pixels[i];
-      const g = pixels[i + 1];
-      const b = pixels[i + 2];
-      const a = pixels[i + 3];
+    for (let i = 0; i < updatedPixels.length; i += 4) {
+      const r = updatedPixels[i];
+      const g = updatedPixels[i + 1];
+      const b = updatedPixels[i + 2];
+      const a = updatedPixels[i + 3];
 
       pixelData[i] = r;
       pixelData[i + 1] = g;
@@ -208,7 +208,7 @@ function PixelMapper() {
       }
     }
 
-    console.log("PIXEL DATA: ", pixelData);
+    // console.log("PIXEL DATA: ", pixelData);
 
     const imageData = new ImageData(pixelData, width, height);
     context.putImageData(imageData, 0, 0);

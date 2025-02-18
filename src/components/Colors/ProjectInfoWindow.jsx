@@ -26,6 +26,8 @@ const ProjectInfoWindow = () => {
         gridTemplateColumns: "1fr 1fr",
         gridTemplateRows: "auto auto",
         padding: 1,
+        borderBottom: "1px solid",
+        borderColor: "divider",
       }}
     >
       <Grid2
@@ -33,39 +35,44 @@ const ProjectInfoWindow = () => {
         xs={6}
         sx={{
           padding: 1,
-          borderRight: "1px solid",
-          borderBottom: "1px solid",
-          borderColor: "divider",
         }}
       >
         <Typography sx={{ fontSize: "0.75rem", fontWeight: 300 }}>
           Beads
         </Typography>
         <Typography
-          sx={{ fontSize: theme.typography.large, fontWeight: 700, paddingRight: 1, color: theme.palette.primary.semiLight }}
+          sx={{
+            fontSize: theme.typography.large,
+            fontWeight: 700,
+            paddingRight: 1,
+            color: theme.palette.primary.semiLight,
+          }}
         >
           {formatWithComma(totalPixels)}
         </Typography>
       </Grid2>
-      <Grid2
-        item="true"
-        xs={6}
-        sx={{ padding: 1, borderBottom: "1px solid", borderColor: "divider" }}
-      >
+      <Grid2 item="true" xs={6} sx={{ padding: 1, borderColor: "divider" }}>
         <Typography sx={{ fontSize: "0.75rem", fontWeight: 300 }}>
           Colors
         </Typography>
-        <Typography sx={{ fontSize: theme.typography.large, fontWeight: 700, color: "#7292FF" }}>
-          {formatWithComma(colorPaletteArray.length-1)}
+        <Typography
+          sx={{
+            fontSize: theme.typography.large,
+            fontWeight: 700,
+            color: "#7292FF",
+          }}
+        >
+          {formatWithComma(colorPaletteArray.length - 1)}
         </Typography>
       </Grid2>
-      <Grid2
-        item="true"
-        xs={12}
-        sx={{ paddingTop: 1, paddingInline: 0.25 }}
-      >
+      <Grid2 item="true" xs={12} sx={{ paddingInline: 0.25 }}>
         <Typography
-          sx={{ fontSize: "0.75rem", fontWeight: 300, paddingLeft: 1, fontStyle: "italic" }}
+          sx={{
+            fontSize: "0.75rem",
+            fontWeight: 300,
+            paddingLeft: 1,
+            fontStyle: "italic",
+          }}
         >{`${imagePixelData.width} x ${imagePixelData.height} (W x H)`}</Typography>
       </Grid2>
     </Grid2>

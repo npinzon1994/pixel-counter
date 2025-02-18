@@ -10,10 +10,17 @@ import {
   CssBaseline,
   GlobalStyles,
 } from "@mui/material";
+import { processImage } from "./model/matrix-transformations";
 
 function App() {
-  const { setImagePixelData, scrapedColors, setScrapedColors } =
-    useContext(ColorsContext);
+  const {
+    imagePixelData,
+    setImagePixelData,
+    scrapedColors,
+    setScrapedColors,
+    selectedBrands,
+    beadSize
+  } = useContext(ColorsContext);
   const [darkMode, setDarkMode] = useState(true);
 
   const theme = createTheme({
@@ -45,11 +52,11 @@ function App() {
         fontSize: "1.7rem",
       },
       medium: {
-        fontSize: "1rem",
+        fontSize: "0.85rem",
       },
       small: {
         fontSize: "0.75rem",
-      }
+      },
     },
     components: {
       MuiButton: {
@@ -63,23 +70,50 @@ function App() {
     },
   });
 
-  //scraping colors on first load
+  //updating lookup table based on BRAND and SIZE
   useEffect(() => {
-    fetch("https://rgb-color-matcher-and-web-scraper.onrender.com/api/colors")
-      .then((response) => response.json())
-      .then((data) => setScrapedColors(data))
-      .catch((error) => console.error("Error fetching colors:", error));
+    console.log("Selected Brands: ", selectedBrands);
+    console.log("Selected Size: ", beadSize);
+    fetch("http://localhost:5000/api/get-color-table", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({selectedBrands, beadSize}),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(`Scraped Colors (${Object.keys(data).length}):`, data);
+        setScrapedColors(data);
+      })
+      .catch((error) => console.error("Error fetching colors: ", error));
+  }, [selectedBrands.perler, selectedBrands.artkal, selectedBrands.top_tier, beadSize]);
 
-    //grabbing default image
-    fetch("https://rgb-color-matcher-and-web-scraper.onrender.com/api/default-image")
-      .then((response) => response.json())
-      .then((data) => setImagePixelData(data))
-      .catch((error) => console.error("Error fetching colors:", error));
-  }, [setImagePixelData, setScrapedColors]);
 
+  //fetching default image on first load
   useEffect(() => {
-    console.log("Scraped Colors: ", scrapedColors);
+    fetch("http://localhost:5000/api/default-image")
+      .then((response) => {
+        console.log("[React] Response Received (Default Image Pixel Data)");
+        return response.json();
+      })
+      .then((data) => {
+        console.log("[React] Default Image Pixel Data:", data);
+        setImagePixelData(data);
+      })
+      .catch((error) => console.error("Error fetching default image:", error));
+  }, [setImagePixelData]);
+
+  //reprocessing colors when bead selection changes
+  useEffect(() => {
+    if (!imagePixelData.originalPixels) {
+      return;
+    }
+    const { updatedPixels } = processImage(
+      imagePixelData.originalPixels,
+      scrapedColors
+    );
+    setImagePixelData((prev) => ({ ...prev, updatedPixels }));
   }, [scrapedColors]);
+
 
   return (
     <ThemeProvider theme={theme}>

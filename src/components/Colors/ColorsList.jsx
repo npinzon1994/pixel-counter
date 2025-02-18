@@ -1,6 +1,13 @@
 import ColorsContext from "../../context/colors-context";
 import { useContext, useState } from "react";
-import { List, ListItem, ListItemButton, Typography } from "@mui/material";
+import {
+  List,
+  ListItem,
+  ListItemButton,
+  ListSubheader,
+  Typography,
+  useTheme,
+} from "@mui/material";
 
 const formatWithComma = (number) => Intl.NumberFormat("en-US").format(number);
 
@@ -8,11 +15,7 @@ const ColorsList = () => {
   const { colorPalette, scrapedColors, setHighlightedColor } =
     useContext(ColorsContext);
   const [selectedIndex, setSelectedIndex] = useState(null);
-
-  // const colorLookupTree = useMemo(
-  //   () => new KDTree(lookupTableValues),
-  //   [lookupTableValues]
-  // );
+  const theme = useTheme();
 
   const colorPaletteArray = Object.values(colorPalette);
   const outputColors = [];
@@ -21,7 +24,8 @@ const ColorsList = () => {
     const color = { ...colorPaletteArray[i] };
     const { r, g, b } = color;
     const colorKey = `R${r}G${g}B${b}`;
-    const name = colorKey in scrapedColors ? scrapedColors[colorKey] : colorKey;
+    const name =
+      colorKey in scrapedColors ? scrapedColors[colorKey].name : colorKey;
     color.colorKey = colorKey;
     color.name = name;
     outputColors.push(color);
@@ -40,6 +44,16 @@ const ColorsList = () => {
 
   return (
     <List sx={{ overflow: "auto", padding: 0, maxHeight: "100vh" }}>
+      <ListSubheader
+        sx={{
+          fontSize: theme.typography.small,
+          color: theme.palette.text.heading,
+          lineHeight: 2,
+          paddingBlock: 0.25,
+        }}
+      >
+        COLORS
+      </ListSubheader>
       {filteredColors.map((color, index) => (
         <ListItem key={index} disablePadding>
           <ListItemButton
@@ -63,7 +77,7 @@ const ColorsList = () => {
               display: "flex",
               justifyContent: "space-between",
               gap: "2rem",
-              paddingBlock: 2,
+              paddingBlock: 1.2,
               opacity:
                 selectedIndex !== null && selectedIndex !== index ? 0.35 : 1,
 
@@ -82,8 +96,8 @@ const ColorsList = () => {
               primary={color.name}
               sx={{
                 color: getContrastingTextColor(color.r, color.g, color.b),
-                fontSize: "0.9rem",
-                fontWeight: 700,
+                fontSize: theme.typography.small,
+                fontWeight: 600,
               }}
             >
               {color.name}
@@ -91,8 +105,8 @@ const ColorsList = () => {
             <Typography
               sx={{
                 color: getContrastingTextColor(color.r, color.g, color.b),
-                fontSize: "0.9rem",
-                fontWeight: 700,
+                fontSize: theme.typography.small,
+                fontWeight: 600,
               }}
             >
               {formatWithComma(color.quantity)}
