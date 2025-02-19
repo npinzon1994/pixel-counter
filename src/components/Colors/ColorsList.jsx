@@ -12,9 +12,10 @@ import {
 const formatWithComma = (number) => Intl.NumberFormat("en-US").format(number);
 
 const ColorsList = () => {
-  const { colorPalette, scrapedColors, setHighlightedColor } =
+  const { colorPalette, scrapedColors, setHighlightedColor, highlightedColor } =
     useContext(ColorsContext);
   const [selectedIndex, setSelectedIndex] = useState(null);
+  const [mouseDown, setMouseDown] = useState(false);
   const theme = useTheme();
 
   const colorPaletteArray = Object.values(colorPalette);
@@ -69,9 +70,14 @@ const ColorsList = () => {
             }}
             tabIndex={0}
             onBlur={() => {
+              if (mouseDown) {
+                return;
+              }
               handleListItemClick(null);
               setHighlightedColor(null);
             }}
+            onMouseDown={() => setMouseDown(true)}
+            onMouseUp={() => setMouseDown(false)}
             sx={{
               background: `rgba(${color.r}, ${color.g}, ${color.b}, 0.85)`,
               display: "flex",
