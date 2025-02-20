@@ -11,17 +11,20 @@ import {
   GlobalStyles,
 } from "@mui/material";
 import { processImage } from "./model/matrix-transformations";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 function App() {
+  const queryClient = new QueryClient();
+  const [darkMode, setDarkMode] = useState(true);
+  
   const {
     imagePixelData,
     setImagePixelData,
     scrapedColors,
     setScrapedColors,
     selectedBrands,
-    beadSize
+    beadSize,
   } = useContext(ColorsContext);
-  const [darkMode, setDarkMode] = useState(true);
 
   const theme = createTheme({
     palette: {
@@ -70,27 +73,9 @@ function App() {
     },
   });
 
-  //updating lookup table based on BRAND and SIZE
-  useEffect(() => {
-    console.log("Selected Brands: ", selectedBrands);
-    console.log("Selected Size: ", beadSize);
-    fetch("http://localhost:5000/api/get-color-table", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({selectedBrands, beadSize}),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(`Scraped Colors (${Object.keys(data).length}):`, data);
-        setScrapedColors(data);
-      })
-      .catch((error) => console.error("Error fetching colors: ", error));
-  }, [selectedBrands.perler, selectedBrands.artkal, selectedBrands.top_tier, beadSize]);
-
-
   //fetching default image on first load
   useEffect(() => {
-    fetch("http://localhost:5000/api/default-image")
+    fetch("https://rgb-color-matcher-and-web-scraper.onrender.com/api/default-image")
       .then((response) => {
         console.log("[React] Response Received (Default Image Pixel Data)");
         return response.json();
@@ -114,45 +99,46 @@ function App() {
     setImagePixelData((prev) => ({ ...prev, updatedPixels }));
   }, [scrapedColors]);
 
-
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline /> {/* Resets default browser styles */}
-      <GlobalStyles
-        styles={(theme) => ({
-          body: {
-            backgroundColor: theme.palette.background.default,
-            margin: 0,
-            padding: 0,
-            fontFamily: theme.typography.fontFamily,
-          },
-          main: {
-            backgroundColor: theme.palette.background.paper,
-          },
-          "::-webkit-scrollbar": {
-            width: "8px", // width of the scrollbar
-            height: "8px", // height of horizontal scrollbar
-          },
-          "::-webkit-scrollbar-track": {
-            backgroundColor: darkMode ? "#333" : "#e0e0e0", // color of scrollbar track
-          },
-          "::-webkit-scrollbar-thumb": {
-            backgroundColor: theme.palette.primary.main, // color of the scrollbar thumb
-          },
-          "::-webkit-scrollbar-thumb:hover": {
-            backgroundColor: theme.palette.primary.dark, // thumb color on hover
-          },
-          "::-webkit-scrollbar-button": {
-            display: "none", // optional: hide scroll buttons (arrows)
-          },
-        })}
-      />
-      <div id={classes["main-wrapper"]}>
-        <Controls />
-        <PixelMapper />
-        <ColorsPanel />
-      </div>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline /> {/* Resets default browser styles */}
+        <GlobalStyles
+          styles={(theme) => ({
+            body: {
+              backgroundColor: theme.palette.background.default,
+              margin: 0,
+              padding: 0,
+              fontFamily: theme.typography.fontFamily,
+            },
+            main: {
+              backgroundColor: theme.palette.background.paper,
+            },
+            "::-webkit-scrollbar": {
+              width: "8px", // width of the scrollbar
+              height: "8px", // height of horizontal scrollbar
+            },
+            "::-webkit-scrollbar-track": {
+              backgroundColor: darkMode ? "#333" : "#e0e0e0", // color of scrollbar track
+            },
+            "::-webkit-scrollbar-thumb": {
+              backgroundColor: theme.palette.primary.main, // color of the scrollbar thumb
+            },
+            "::-webkit-scrollbar-thumb:hover": {
+              backgroundColor: theme.palette.primary.dark, // thumb color on hover
+            },
+            "::-webkit-scrollbar-button": {
+              display: "none", // optional: hide scroll buttons (arrows)
+            },
+          })}
+        />
+        <div id={classes["main-wrapper"]}>
+          <Controls />
+          <PixelMapper />
+          <ColorsPanel />
+        </div>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 

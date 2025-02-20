@@ -5,10 +5,50 @@ import ColorsContext from "../../context/colors-context";
 import ProjectInfoWindow from "./ProjectInfoWindow";
 import { Box } from "@mui/material";
 import BeadFilter from "./BeadFilter";
+import { useQuery } from "@tanstack/react-query";
 
 const ColorsPanel = () => {
-  const { colorPalette } = useContext(ColorsContext);
+  const { colorPalette, selectedBrands, beadSize, setScrapedColors } = useContext(ColorsContext);
   const colorsNotEmpty = Object.values(colorPalette).length > 0;
+
+  function fetchScrapedColors(selectedBrands, beadSize) {
+    console.log("Selected Brands: ", selectedBrands);
+    console.log("Selected Size: ", beadSize);
+    return fetch("https://rgb-color-matcher-and-web-scraper.onrender.com/api/get-color-table", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ selectedBrands, beadSize }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(`Scraped Colors (${Object.keys(data).length}):`, data);
+        setScrapedColors(data);
+        return data;
+      })
+      .catch((error) => console.error("Error fetching colors: ", error));
+  }
+
+  const { isLoading, error } = useQuery({
+    queryKey: [
+      "scraped-colors",
+      selectedBrands.perler,
+      selectedBrands.artkal,
+      selectedBrands.top_tier,
+      beadSize,
+    ],
+    queryFn: () => fetchScrapedColors(selectedBrands, beadSize),
+  });
+
+  let colorsList = <p>No image selected</p>;
+  if (colorsNotEmpty) {
+    colorsList = <ColorsList />;
+  }
+  if (isLoading) {
+    colorsList = <p>Grabbing bead colors...</p>;
+  }
+  if (error) {
+    colorsList = <p>Something went wrong! {error}</p>;
+  }
 
   return (
     <Box
@@ -17,7 +57,7 @@ const ColorsPanel = () => {
     >
       <ProjectInfoWindow />
       <BeadFilter />
-      {colorsNotEmpty ? <ColorsList /> : <p>No image selected</p>}
+      {colorsList}
     </Box>
   );
 };
